@@ -1,5 +1,3 @@
-//app.module je glavni modul aplikacije, on povezuje sve druge delove aplikacije:kontrolore, servise i druge module
-//Omogucava povezivanje sa bazom podataka preko ORM-a. npr sa TypeORMModule, Prisma itd
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Auction } from "entities/auction.entity";
@@ -15,31 +13,32 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal:true}),
+        ConfigModule.forRoot({
+            isGlobal: true // Čini konfiguraciju globalnom za celu aplikaciju
+        }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
-            inject:[ConfigModule],
-            useFactory:(configService: ConfigService) => ({
-                type:'postgres',
-                host: configService.get<string>('DB_HOST'),
+            inject: [ConfigService], // Injectuj ConfigService
+            useFactory: async (configService: ConfigService) => ({
+                type: 'postgres',
+                host: configService.get<string>('DB_HOST'), // Korišćenje vrednosti iz .env fajla
                 port: configService.get<number>('DB_PORT'),
                 username: configService.get<string>('USER'),
                 password: configService.get<string>('PASSWORD'),
                 database: configService.get<string>('NAME'),
-                entities:[User, Auction, Bid, Item], 
-                synchronize: true, //samo za razvoj
+                entities: [User, Auction, Bid, Item], // Definiše entitete
+                synchronize: true, // Samo za razvoj! U produkciji postaviti na false
             }),
         }),
         TypeOrmModule.forFeature([User, Auction, Bid, Item]),
     ],
-    providers: 
-    [
+    providers: [
         AuctionService, 
-     UserService, 
-    BidService,
-    ItemService,
-],
-
+        UserService, 
+        BidService,
+        ItemService,
+    ],
 })
- export class AppModule {}
+export class AppModule {}
+
     
