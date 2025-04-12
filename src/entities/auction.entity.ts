@@ -3,6 +3,7 @@ import { BaseEntity } from "entities/base.entity";
 import { User } from "./user.entity";
 import { Bid } from "./bid.entity";
 import { Item } from "./item.entity";
+import { Image } from "./image.entitiy";
 
 @Entity()
 export class Auction extends BaseEntity {
@@ -31,5 +32,8 @@ export class Auction extends BaseEntity {
 
     @ManyToOne(() => User) 
     bidder: User; 
+
+    @OneToMany(() => Image, (image) => image.auction)
+    image: Image ;
 }
 

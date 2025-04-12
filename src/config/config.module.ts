@@ -7,7 +7,7 @@ import { configValidationShema } from "./config-validation-shema";
     imports: [
         ConfigModule.forRoot({
             isGlobal:true, // Čini konfiguraciju dostupnom u celoj aplikaciji
-            envFilePath:['.env'], // Putanja do .env fajla sa konfiguracijama
+            envFilePath:['env'], // Putanja do .env fajla sa konfiguracijama
             validationSchema : configValidationShema, // Povezuješ šemu za validaciju sa .env fajlom
         }),
 

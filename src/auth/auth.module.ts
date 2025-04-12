@@ -8,12 +8,15 @@ import { AuthService } from "./auth.service";
 import { UserService } from "user/user.service";
 import { AuthController } from "./auth.controller";
 import { JwtStrategy } from "./strategy/jwt.strategy";
+import { Auction } from "entities/auction.entity";
+import { Item } from "entities/item.entity";
+import { Bid } from "entities/bid.entity";
 
 
 @Module({
     imports:[
         ConfigModule,
-        TypeOrmModule.forFeature([User]), //pristup User entitetu
+        TypeOrmModule.forFeature([User, Auction, Item, Bid]), //pristup User entitetu
         PassportModule.register({defaultStrategy: 'jwt'}),
         JwtModule.registerAsync({
             imports:[ConfigModule],

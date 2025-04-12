@@ -4,6 +4,7 @@ import { Auction } from "entities/auction.entity";
 import { Bid } from "entities/bid.entity";
 import { Item } from "entities/item.entity";
 import { User } from "entities/user.entity";
+import { Image } from "entities/image.entitiy";
 import { AuctionService } from './auction/auction.service';
 import { UserService } from './user/user.service';
 import { BidService } from './bid/bid.service';
@@ -23,14 +24,14 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
                 type: 'postgres',
                 host: configService.get<string>('DB_HOST'), // Korišćenje vrednosti iz .env fajla
                 port: configService.get<number>('DB_PORT'),
-                username: configService.get<string>('USER'),
-                password: configService.get<string>('PASSWORD'),
-                database: configService.get<string>('NAME'),
+                username: configService.get<string>('DB_USERNAME'),
+                password: configService.get<string>('DB_PASSWORD'),
+                database: configService.get<string>('DB_NAME'),
                 entities: [User, Auction, Bid, Item], // Definiše entitete
                 synchronize: true, // Samo za razvoj! U produkciji postaviti na false
             }),
         }),
-        TypeOrmModule.forFeature([User, Auction, Bid, Item]),
+        TypeOrmModule.forFeature([User, Auction, Bid, Item, Image]),
     ],
     providers: [
         AuctionService, 
