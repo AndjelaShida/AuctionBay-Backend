@@ -6,6 +6,8 @@ import { Auction } from "entities/auction.entity";
 import { Bid } from "entities/bid.entity";
 import { Item } from "entities/item.entity";
 import { Role } from "role/role.enum";
+import { Image } from "./image.entitiy";
+
 
 
 @Entity() //Entity() se koristi za označavanje klase kao entiteta u TypeORM-u.
@@ -39,7 +41,7 @@ export class User extends BaseEntity {
     @OneToMany(() => Item, (item) => item.user)
     items: Item[] ;
 
-
-
+    @OneToMany(() => Image, (image) => image.user)
+    image: Image [];
 
 }

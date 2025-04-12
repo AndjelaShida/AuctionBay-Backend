@@ -18,7 +18,7 @@ export class ConfigServiceCustom {
 
    // Metoda za proveru i dobijanje vrednosti baze podataka (DB)
    getDbHost():string {
-    return this.get('DB_HOSTT') ; //this.get() se često koristi za dobijanje vrednosti iz konfiguracije
+    return this.get('DB_HOST') ; //this.get() se često koristi za dobijanje vrednosti iz konfiguracije
    }
 
    getDbPort():number {
@@ -33,8 +33,8 @@ export class ConfigServiceCustom {
     return this.get('DB_USERNAME');
    }
 
-   getDbPassword():number {
-    return Number(this.get('DB_PASSWORD'));
+   getDbPassword():string{
+    return String(this.get('DB_PASSWORD'));
    }
 
    
