@@ -1,6 +1,6 @@
 import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
 
-// Custom decorator for matching two fields
+
 export function Match(
   type: any,
   property: (obj: any) => any,

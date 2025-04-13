@@ -1,7 +1,8 @@
 import { Controller, Delete, Get, NotFoundException, Param, Post } from "@nestjs/common";
 import { ImageService } from "./image.service";
 import { Image } from "entities/image.entitiy";
-import { CreateImageDto } from "./dto/create-Image.dto";
+import { CreateImageDto } from "./dto/create-image.dto";
+
 
 @Controller('images')
 export class ImageController {

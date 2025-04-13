@@ -12,24 +12,24 @@ import { AuthGuard } from "@nestjs/passport";
 
 @Controller('item')
 export class ItemController {
-    constructor(private readonly ItemService: ItemService) {}
+    constructor(private readonly itemService: ItemService) {}
     //kreiranje predmeta
     @Post()
     @UseGuards(AuthGuard('jwt'))
     async create(@Body() createItemDto: CreateItemDto):Promise<Item> {
-        return this.ItemService.create(createItemDto);
+        return this.itemService.create(createItemDto);
     }
 
     //dohvatanje svih predmeta
     @Get()
     async findAll(): Promise<Item[]> {
-        return this.ItemService.findAll();
+        return this.itemService.findAll();
     }
 
     //dohvatanje po id-ju
     @Get(':id')
     async findOne(@Param('id') id:number): Promise<Item | null>  {
-    return this.ItemService.findOne(id) ;
+    return this.itemService.findOne(id) ;
     }
 
     //azuriranje predmeta
@@ -37,15 +37,15 @@ export class ItemController {
     @UseGuards(AuthGuard('jwt'))
     async update(@Param('id') id:number, @Body() updateItemDto: UpdateItemDto, @Req() req ):Promise<Item> {
         const userId = req.user.id;
-        return this.ItemService.update(id, updateItemDto, userId);
+        return this.itemService.update(id, updateItemDto, userId);
         
     }
 
     //brisanje predmeta
-    @Delete()
+    @Delete(':id')
     @UseGuards(AuthGuard('jwt'))
     async remove(@Param('id')id:number):Promise<void> {
-        await this.ItemService.remove(id);
+        await this.itemService.remove(id);
     }
 }
 

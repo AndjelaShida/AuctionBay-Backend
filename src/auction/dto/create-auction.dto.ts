@@ -11,11 +11,11 @@ export class CreateAuctionDto {
  description: string;
 
  @IsNumber() //ukljucuje i decimalne
- price: number ;
+ startingPrice: number ;
 
- @IsString()
- imageUrl: string ;
-
+ @IsOptional()
+ @IsNumber()
+ userId?: number ;
 
 
 }

@@ -1,7 +1,6 @@
 //Kontroler je tu da obrađuje HTTP zahteve (GET, POST, DELETE, itd.).
 ////Svaka metoda unutar UserController treba da poziva odgovarajući metod iz UserService klase, 
 // koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
-
 import {
     Body, 
     Controller, 
@@ -16,55 +15,56 @@ import { UserService } from "./user.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { User } from "entities/user.entity";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { AuthGuard } from "@nestjs/passport";
+import { JwtAuthGuard } from "auth/guards/jwt-auth.guard";
+import { CurrentUser } from "decorators/current-user.decorator";
 
 
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UserController {
-    constructor(private readonly UserService: UserService) {}
+    constructor(private readonly userService: UserService) {}
 
-      //KREIRANJE KORISNIKA
-      @Post('signup')
+//KREIRANJE KORISNIKA
+    @Post('signup')
       async signup(@Body() createUserDto: CreateUserDto): Promise<User> {
-        return this.UserService.create(createUserDto);
+        return this.userService.create(createUserDto);
       }
-       //DOHVATI SVE KORISNIKE
+//DOHVATI SVE KORISNIKE
     @Get()
     async findAll():Promise<User[]> {
-        return this.UserService.findAll();
+        return this.userService.findAll();
     }
-        //DOHVATI PO ID-ju 
-        @Get(':id')
+//DOHVATI PO ID-ju 
+    @Get(':id')
         async findOne(@Param('id') id:number): Promise<User | null> {
-            return this.UserService.findOne(id) ;
+            return this.userService.findOne(id) ;
         }
-        //AŽURIRAJ KORISNIKA 
-        @Put('me/update-password')
-        @UseGuards(AuthGuard('jwt'))
-        async update(@Param('id') id:number, updateUserDto: UpdateUserDto): Promise<User> {
-            return this.UserService.update(id, updateUserDto);
+//AŽURIRAJ KORISNIKA 
+     @Put('me/update-profile')
+        async updateProfile(
+            @Body() updateUserDto: UpdateUserDto,
+            @CurrentUser() currentUser:User
+            ): Promise<User> {
+            return this.userService.update(currentUser.id, updateUserDto, currentUser);
         }
 
-        //DOHVATANJE TRENUTKOG KORISNIKA
-        @Get('me')
-        @UseGuards(AuthGuard('jwt'))
+//DOHVATANJE TRENUTKOG KORISNIKA
+    @Get('me')
         async getMe(@Req() req): Promise<User> {
-            return this.UserService.getMe(req.user.id) ;
+            return this.userService.getMe(req.user.id) ;
         }
          
-        //AZURIRAJ LOZINKU(za trenutnog korisnika)
-            @Put('me/update-password')
-            @UseGuards(AuthGuard('jwt'))
+//AZURIRAJ LOZINKU(za trenutnog korisnika)
+    @Put('me/update-password')
             async updatePassword(@Req() req, @Body() newPasswordDto: { password: string}) {
-                return this.UserService.updatePassword(req.user.id, newPasswordDto.password)
+                return this.userService.updatePassword(req.user.id, newPasswordDto.password)
             }
             
-    
-        //BRISANJE KORISNIKA 
-         @Delete(':id')
-         async remove(@Param()id:number):Promise<void> {
-            await this.UserService.remove(id);
+//BRISANJE KORISNIKA 
+     @Delete('me')
+         async remove(@CurrentUser() currentUser: User):Promise<void> {
+            await this.userService.remove(currentUser.id, currentUser);
          }
 }
 

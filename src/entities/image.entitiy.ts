@@ -1,11 +1,11 @@
-import { Column, Entity, ManyToOne, OneToOne } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Item } from "./item.entity";
 import { Auction } from "./auction.entity";
 import { User } from "./user.entity";
 
 @Entity()
 export class Image {
-    @Column()
+    @PrimaryGeneratedColumn()
     id: number ;
 
     @Column()

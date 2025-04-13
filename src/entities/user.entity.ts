@@ -1,12 +1,13 @@
 //entitetski fajlovi sluze za definisanje modela podataka koji se koriste u bazi podataka, tj predstavljaju strukturu podataka
 //koja se cuva u bazi.
-import { Column , Entity, OneToMany} from "typeorm";
+import { Column , Entity, JoinColumn, ManyToOne, OneToMany} from "typeorm";
 import { BaseEntity } from 'entities/base.entity';  
 import { Auction } from "entities/auction.entity";
 import { Bid } from "entities/bid.entity";
 import { Item } from "entities/item.entity";
-import { Role } from "role/role.enum";
 import { Image } from "./image.entitiy";
+import { Role } from "./role.entity";
+
 
 
 
@@ -28,10 +29,6 @@ export class User extends BaseEntity {
     @Column({ nullable: false })
     password: string; 
 
-    @Column({type:'enum', enum: Role, default: Role.BUYER})
-    role: Role ;
-
-
     @OneToMany(() => Auction, (auction) => auction.user)  //oznacava da 1 korisnik moze imati vise aukcija
     auction: Auction [] ;
 
@@ -43,5 +40,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Image, (image) => image.user)
     image: Image [];
+
+    @ManyToOne(() => Role, {eager: true})
+    @JoinColumn({ name: 'roleId'}) 
+    role: Role ;
 
 }
