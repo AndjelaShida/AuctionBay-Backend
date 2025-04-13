@@ -7,30 +7,30 @@ import { AuthGuard } from "@nestjs/passport";
 @Controller('bid') 
 @UseGuards(AuthGuard('jwt')) 
 export class BidController {
-    constructor (private readonly BidService: BidService) {}
+    constructor (private readonly bidService: BidService) {}
 
     //Kreiranje nove ponude
     @Post()
     async create(@Body() createBidDto:CreateBidDto): Promise<Bid> {
-        return this.BidService.create(createBidDto) ;
+        return this.bidService.create(createBidDto) ;
     }
 
     //Dohvatu sve podatke
     @Get()
     async findAll():Promise<Bid[]> { //[] moramo da stavimo jer dohvatamo SVE podatke, a svi podatci su niz
-        return this.BidService.findALL();
+        return this.bidService.findALL();
     }
 
     //Dohvati jednu ponudu prema ID-ju
     @Get(':id')
     async findOne(@Param('id') id:number):Promise<Bid | null> {
-        return this.BidService.findOne(id);
+        return this.bidService.findOne(id);
     } 
 
     //Brisanje ponude
     @Delete(':id')
     async remove(@Param('id') id:number): Promise<void> {
-        await this.BidService.remove(id);
+        await this.bidService.remove(id);
     }    
 }
 

@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm";
 import { BaseEntity } from "entities/base.entity";
 import { User } from "./user.entity";
 import { Bid } from "./bid.entity";
@@ -27,13 +27,14 @@ export class Auction extends BaseEntity {
     @OneToMany(() => Bid, (bid) => bid.auction)
     bids: Bid [] ;
 
-    @ManyToOne(() => Item, (item) => item.auction)
-    items: Item[] ;
+    @ManyToMany(() => Item, (item) => item.auction)
+    @JoinTable()
+    items: Item [] ;
 
     @ManyToOne(() => User) 
     bidder: User; 
 
     @OneToMany(() => Image, (image) => image.auction)
-    image: Image ;
+    images: Image [] ;
 }
 

@@ -1,15 +1,21 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Auction } from "entities/auction.entity";
 import { Repository } from "typeorm";
 import { CreateAuctionDto } from "./dto/create-auction.dto";
 import { UpdateAuctionDto } from "./dto/update-auction.dto";
+import { User } from "entities/user.entity";
+import { CreateBidDto } from "bid/dto/create-bid.dto";
+import { Role } from "entities/role.entity";
+
 
 @Injectable()
 export class AuctionService {
     constructor(
         @InjectRepository(Auction)
-        private readonly auctionRepository: Repository<Auction>
+        private readonly auctionRepository: Repository<Auction>,
+        private readonly userRepository: Repository<User>,
+        private readonly RoleRepository: Repository<Role>,
     ) {}
 
     // KREIRANJE NOVE AUKCIJE
@@ -25,7 +31,10 @@ export class AuctionService {
 
     // DOHVATANJE PO ID-ju
     async findOne(id: number): Promise<Auction | null> {
-        const auction = await this.auctionRepository.findOneBy({ id });
+        const auction = await this.auctionRepository.findOne({
+            where: { id },
+            relations: ['user'],
+        });
         if (!auction) {
             throw new NotFoundException(`Auction with ID ${id} not found`);
         }
@@ -33,21 +42,41 @@ export class AuctionService {
     }
 
     // AŽURIRANJE AUKCIJE
-    async update(id: number, updateAuctionDto: UpdateAuctionDto): Promise<Auction> {
-        const updatedAuction = await this.auctionRepository.findOne({ where: { id } });
+    async update(
+        id: number, 
+        updateAuctionDto: UpdateAuctionDto, 
+        currentUser: User
+    ): Promise<Auction> {
+        const updatedAuction = await this.auctionRepository.findOne({ 
+            where: { id },
+            select: [ 'id', 'user'],
+        });
         if (!updatedAuction) {
             throw new NotFoundException(`Auction with ID ${id} not found`);
         }
+
+        //provera da li korisnik ima pravo da azurira aukciju
+        if(currentUser.role.name !== 'ADMIN' && updatedAuction.user.id !== currentUser.id) {
+            throw new ForbiddenException('You are not authorized to update this auction');
+        }
+       //azuriraj aukciju sa novim podacima
         Object.assign(updatedAuction, updateAuctionDto);
         return this.auctionRepository.save(updatedAuction);
     }
 
     // AŽURIRANJE SAMO SVOJIH AUKCIJA (me/auction/:id)
-    async updateOwnAuction(id: number, userId: number, updateAuctionDto: UpdateAuctionDto): Promise<Auction> {
-        const auction = await this.auctionRepository.findOne({ where: { id } });
+    async updateOwnAuction(
+        id: number, 
+        userId: number, 
+        updateAuctionDto: UpdateAuctionDto, 
+        currentUser: User
+    ): Promise<Auction> {
+        const auction = await this.auctionRepository.findOne({ 
+            where: { id } 
+        });
 
         if (!auction) {
-            throw new ForbiddenException(`Auction with ID ${id} not found`);
+            throw new NotFoundException(`Auction with ID ${id} not found`);
         }
         if (auction.user.id !== userId) {
             throw new ForbiddenException('You can only update your own auctions');
@@ -57,20 +86,32 @@ export class AuctionService {
     }
 
     // DODAVANJE AUKCIJE ZA TRENUTNOG KORISNIKA (me/auction)
-    async addAuctionCurrentUser(userId: number, auctionData: CreateAuctionDto): Promise<Auction> {
-        // Pretpostavljam da "user" nije aukcija, pa moraš da pozoveš UserRepository da bi našao korisnika.
-        const user = await this.auctionRepository.findOne({ where: { id: userId } });
+    async createAuctionForCurrentUser(
+        userId: number, 
+        auctionData: UpdateAuctionDto
+    ): Promise<Auction> {
+       
+        const user = await this.userRepository.findOne({ 
+            where: { id: userId } 
+        });
         if (!user) {
-            throw new NotFoundException(`User not found`);
+            throw new NotFoundException(`User with ID ${userId} is not found`);
         }
         const newAuction = this.auctionRepository.create({ ...auctionData, user: user });
         return this.auctionRepository.save(newAuction);
     }
 
     // BIDDING NA AUKCIJU (/auction/:id/bid)
-    async bidOnAuction(auctionId: number, bidData: any): Promise<{ message: string; auction: Auction }> {
+    async bidOnAuction(
+        auctionId: number, 
+        bidData: CreateBidDto,
+        user: User
+    ): Promise<{ message: string; auction: Auction }> {
         // Proveri da li aukcija postoji
-        const auction = await this.auctionRepository.findOne({ where: { id: auctionId } });
+        const auction = await this.auctionRepository.findOne({ 
+            where: { id: auctionId }, 
+            relations: ['user'],
+        });
         if (!auction) {
             throw new NotFoundException('Auction is not found');
         }
@@ -80,9 +121,13 @@ export class AuctionService {
             throw new BadRequestException('Bid must be higher than the current bid');
         }
 
+        if(auction.user.id === user.id) {
+            throw new ForbiddenException('You cannot bid on your own auction');
+        }
+
         // Ažuriraj aukciju sa novim bidom
         auction.currentPrice = bidData.amount;
-        auction.bidder = bidData.user;
+        auction.bidder = user;
 
         await this.auctionRepository.save(auction);
 
@@ -90,12 +135,29 @@ export class AuctionService {
     }
 
     // BRISANJE AUKCIJE
-    async remove(id: number): Promise<void> {
-        const result = await this.auctionRepository.delete(id);
-        if (result.affected === 0) {
+    async remove(
+        id: number, 
+        currentUser: User
+    ): Promise<void> {
+        // Pronađi aukciju
+        const auction = await this.auctionRepository.findOne({
+            where: { id },
+            relations: ['user'],
+        });
+    
+        if (!auction) {
             throw new NotFoundException(`Auction with ID ${id} not found`);
         }
+    
+        // Provera da li je korisnik admin ili vlasnik aukcije
+        if (currentUser.role.name !== 'ADMIN' && auction.user.id !== currentUser.id) {
+            throw new ForbiddenException('You are not authorized to delete this auction');
+        }
+    
+        //brisanje aukcije ako je sve ok
+        await this.auctionRepository.delete(id);
     }
+    
 }
 
 

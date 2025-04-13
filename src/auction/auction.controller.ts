@@ -1,12 +1,15 @@
 // '//Kontroler je tu da obrađuje HTTP zahteve (GET, POST, DELETE, itd.).
 // ////Svaka metoda unutar UserController treba da poziva odgovarajući metod iz AuctionService klase(putem Post, Get, Put itd ostalih metoda)
 // // koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { Auction } from 'entities/auction.entity';
 import { UpdateAuctionDto } from './dto/update-auction.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { CreateBidDto } from 'bid/dto/create-bid.dto';
+import { CurrentUser } from 'decorators/current-user.decorator';
+import { User } from 'entities/user.entity';
 
 @Controller('auction')
 export class AuctionController {
@@ -31,23 +34,27 @@ export class AuctionController {
     return this.auctionService.findOne(id);
   }
 
-  // AŽURIRAJ AUKCIJU
+  // AŽURIRAJ AUKCIJU-role
   @Put(':id')
   @UseGuards(AuthGuard('jwt'))
-  async update(@Param('id') id: number, @Body() updateAuctionDto: UpdateAuctionDto): Promise<Auction> {
-    return this.auctionService.update(id, updateAuctionDto);
+  async update(
+    @Param('id') id: number,
+   @Body() updateAuctionDto: UpdateAuctionDto,
+   @CurrentUser() currentUser:User): Promise<Auction> {
+    return this.auctionService.update(id, updateAuctionDto, currentUser);
   }
 
-  // AŽURIRANJE SAMO SVOJIH AUKCIJA (me/auction/:id)
+  // AŽURIRANJE SAMO SVOJIH AUKCIJA (me/auction/:id)-role
   @Put('me/auction/:id')
   @UseGuards(AuthGuard('jwt'))
   async updateOwnAuction(
     @Req() req,
     @Param('id') id: number,
-    @Body() updateAuctionDto: UpdateAuctionDto
+    @Body() updateAuctionDto: UpdateAuctionDto,
+    @CurrentUser() currentUser: User
   ): Promise<Auction> {
     const userId = req.user.id ;
-    return this.auctionService.updateOwnAuction(id, userId, updateAuctionDto);
+    return this.auctionService.updateOwnAuction(id, userId, updateAuctionDto, currentUser);
   }
 
   // DODAVANJE AUKCIJE ZA TRENUTNOG KORISNIKA (me/auction)
@@ -57,24 +64,29 @@ export class AuctionController {
     @Req() req,
     @Body() updateAuctionDto: UpdateAuctionDto
   ): Promise<Auction> {
-    return this.auctionService.addAuctionCurrentUser(req.user.id, updateAuctionDto);
+    return this.auctionService.createAuctionForCurrentUser(req.user.id, updateAuctionDto);
   }
 
-  // BIDDING NA AUKCIJU (/auction/:id/bid)
+  // BIDDING NA AUKCIJU (/auction/:id/bid)-role
   @Post(':id/bid')
   @UseGuards(AuthGuard('jwt'))
   async bidOnAuction(
     @Param('id') auctionId: number,
-    @Body() bidData: any // Možete definisati DTO za bid, tip 'any' samo kao primer
+    @Body() bidData: CreateBidDto,
+    @Req() req
   ): Promise<{ message: string; auction: Auction }> {
-    return this.auctionService.bidOnAuction(auctionId, bidData);
+    return this.auctionService.bidOnAuction(auctionId, bidData, req.user);
   }
 
-  // BRISANJE AUKCIJE
+  // BRISANJE AUKCIJE-role
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  async remove(@Param('id') id: number): Promise<void> {
-    await this.auctionService.remove(id);
+  @HttpCode(204)
+  async remove(
+    @Param('id') id: number,
+  @CurrentUser() currentUser: User
+): Promise<void> {
+    await this.auctionService.remove(id, currentUser);
   }
 }
 
