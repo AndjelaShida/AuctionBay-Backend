@@ -3,6 +3,7 @@ import { AuthService } from "./auth.service";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { User } from "entities/user.entity";
 import { LoginUserDto } from "./dto/login-user.dto";
+import { CurrentUser } from "decorators/current-user.decorator";
 
 
 @Controller('auth')
@@ -22,8 +23,11 @@ export class AuthController {
 
     //auth/reset-password
     @Post('resetPassword')
-    async resetPassword(@Body() resetPasswordDto: {email: string, newPassword: string}): Promise<{access_token: string}> {
-        return this.authService.resetPassword(resetPasswordDto.email, resetPasswordDto.newPassword);
+    async resetPassword(
+        @Body() resetPasswordDto: {email: string, newPassword: string},
+    @CurrentUser() currentUser: User ,
+): Promise<{access_token: string}> {
+        return this.authService.resetPassword(resetPasswordDto.email, resetPasswordDto.newPassword, currentUser);
     }
 
     //auth/validate-user

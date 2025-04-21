@@ -5,7 +5,7 @@ import { BaseEntity } from 'entities/base.entity';
 import { Auction } from "entities/auction.entity";
 import { Bid } from "entities/bid.entity";
 import { Item } from "entities/item.entity";
-import { Image } from "./image.entitiy";
+import { Image } from "./image.entity";
 import { Role } from "./role.entity";
 
 

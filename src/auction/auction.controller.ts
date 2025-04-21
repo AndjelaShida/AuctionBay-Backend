@@ -10,16 +10,23 @@ import { AuthGuard } from '@nestjs/passport';
 import { CreateBidDto } from 'bid/dto/create-bid.dto';
 import { CurrentUser } from 'decorators/current-user.decorator';
 import { User } from 'entities/user.entity';
+import { RoleEnum } from 'role/role.enum';
+import { Roles } from 'role/role.decorator';
+import { RoleGuard } from 'role/role.guard';
+
 
 @Controller('auction')
 export class AuctionController {
   constructor(private readonly auctionService: AuctionService) {}
 
-  // KREIRANJE AUKCIJE
+  //KREIRANJE AUKCIJE
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Body() createAuctionDto: CreateAuctionDto): Promise<Auction> {
-    return this.auctionService.create(createAuctionDto);
+  async create(
+    @Body() createAuctionDto: CreateAuctionDto,
+    @CurrentUser() user: User,
+  ): Promise<Auction> {
+    return this.auctionService.create(createAuctionDto, user)
   }
 
   // DOHVATI SVE AUKCIJE
@@ -36,51 +43,46 @@ export class AuctionController {
 
   // AŽURIRAJ AUKCIJU-role
   @Put(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles(RoleEnum.SELLER)
   async update(
     @Param('id') id: number,
    @Body() updateAuctionDto: UpdateAuctionDto,
-   @CurrentUser() currentUser:User): Promise<Auction> {
+   @CurrentUser() currentUser:User
+  ): Promise<Auction> {
     return this.auctionService.update(id, updateAuctionDto, currentUser);
   }
 
   // AŽURIRANJE SAMO SVOJIH AUKCIJA (me/auction/:id)-role
   @Put('me/auction/:id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles(RoleEnum.SELLER)
   async updateOwnAuction(
-    @Req() req,
     @Param('id') id: number,
     @Body() updateAuctionDto: UpdateAuctionDto,
     @CurrentUser() currentUser: User
   ): Promise<Auction> {
-    const userId = req.user.id ;
-    return this.auctionService.updateOwnAuction(id, userId, updateAuctionDto, currentUser);
+
+    return this.auctionService.updateOwnAuction(id, updateAuctionDto, currentUser);
   }
 
-  // DODAVANJE AUKCIJE ZA TRENUTNOG KORISNIKA (me/auction)
-  @Post('me/auction') // Pretpostavljam da je POST, jer dodajemo novu aukciju
-  @UseGuards(AuthGuard('jwt'))
-  async addAuctionCurrentUser(
-    @Req() req,
-    @Body() updateAuctionDto: UpdateAuctionDto
-  ): Promise<Auction> {
-    return this.auctionService.createAuctionForCurrentUser(req.user.id, updateAuctionDto);
-  }
 
   // BIDDING NA AUKCIJU (/auction/:id/bid)-role
   @Post(':id/bid')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles(RoleEnum.SELLER, RoleEnum.BUYER, RoleEnum.ADMIN)
   async bidOnAuction(
     @Param('id') auctionId: number,
     @Body() bidData: CreateBidDto,
-    @Req() req
-  ): Promise<{ message: string; auction: Auction }> {
-    return this.auctionService.bidOnAuction(auctionId, bidData, req.user);
+    @CurrentUser() currentUser: User,
+  ): Promise<Auction> {
+    return this.auctionService.bidOnAuction(auctionId, bidData, currentUser);
   }
 
   // BRISANJE AUKCIJE-role
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles(RoleEnum.ADMIN)
   @HttpCode(204)
   async remove(
     @Param('id') id: number,

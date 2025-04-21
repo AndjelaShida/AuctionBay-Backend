@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt' ;
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { hashPassword } from "utilis/bcrypt";
 import { LoginUserDto } from "./dto/login-user.dto";
+import { CurrentUser } from "decorators/current-user.decorator";
 
 @Injectable()
 export class AuthService {
@@ -55,13 +56,13 @@ async register(RegisterUserDto: RegisterUserDto): Promise<User> {
 
    }
 //RESETOVANJE LOZINKE
-    async resetPassword(email: string, newPassword: string): Promise<{access_token: string}> {
+    async resetPassword(email: string, newPassword: string, currentUser: User): Promise<{access_token: string}> {
         const user = await this.userService.findOneByEmail(email);
         if(!user) {
-            throw new UnauthorizedException('User is nit found');
+            throw new UnauthorizedException('User is not found');
         }
         user.password = await hashPassword(newPassword) ;
-        await this.userService.update(user.id, user);
+        await this.userService.update(user.id, user, currentUser);
 
         return {access_token:'Password updated successfully'}      
     }

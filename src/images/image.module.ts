@@ -7,7 +7,7 @@ import { Auction } from "entities/auction.entity";
 import { Item } from "entities/item.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Image, User, Auction, Item,])
+    imports: [TypeOrmModule.forFeature([Image, User, Auction, Item])
 ],
     controllers: [ImageController] ,
     providers: [ImageService],
