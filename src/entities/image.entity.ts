@@ -18,11 +18,11 @@ export class Image {
     mimetype: string;
 
 //item
-@ManyToOne(() => Item, (item) => item.image)
+@ManyToOne(() => Item, (item) => item.images)
 item: Item ;
 
 //auction
-@ManyToOne(() => Auction, (auction) => auction.image)
+@ManyToOne(() => Auction, (auction) => auction.images)
 auction: Auction ;
 
 //user

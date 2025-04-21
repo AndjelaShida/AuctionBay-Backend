@@ -7,16 +7,13 @@ import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { hashPassword } from "utilis/bcrypt";
-import { Role } from "entities/role.entity";
-import { CurrentUser } from "decorators/current-user.decorator";
+
 
 @Injectable() 
     export class UserService {
         constructor(
             @InjectRepository(User)
-            private readonly userRepository: Repository<User>,
-
-            private readonly RoleRepository: Repository<Role>,
+            private readonly userRepository: Repository<User>
     ) {}
 
 //KREIRANJE KORISNIKA

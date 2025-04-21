@@ -3,7 +3,7 @@ import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany } from 'ty
 import { Auction } from './auction.entity';
 import { User } from './user.entity';
 import { Bid } from './bid.entity';
-import { Image } from './image.entitiy';
+import { Image } from './image.entity';
 
 @Entity()
 export class Item extends BaseEntity {
@@ -33,7 +33,7 @@ export class Item extends BaseEntity {
     bids: Bid[] ;
 
     @OneToMany(() => Image, (image) => image.item)
-    image: Image [] ;
+    images: Image [] ;
 
   
   

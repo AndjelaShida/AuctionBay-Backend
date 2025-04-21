@@ -3,7 +3,7 @@ import { BaseEntity } from "entities/base.entity";
 import { User } from "./user.entity";
 import { Bid } from "./bid.entity";
 import { Item } from "./item.entity";
-import { Image } from "./image.entitiy";
+import { Image } from "./image.entity";
 
 @Entity()
 export class Auction extends BaseEntity {
@@ -21,7 +21,7 @@ export class Auction extends BaseEntity {
     @Column('decimal')
     currentPrice: number ; //trenutna cena aukcije(najveca ponuda)
 
-    @ManyToOne(() => User, (user) => user.auction)
+    @ManyToOne(() => User, (user) => user.auction, { lazy: true}) //lazi znaci da ce se user ucitati samo kad direktno pristupis auction.user
     user: User ;
 
     @OneToMany(() => Bid, (bid) => bid.auction)
@@ -31,7 +31,7 @@ export class Auction extends BaseEntity {
     @JoinTable()
     items: Item [] ;
 
-    @ManyToOne(() => User) 
+    @ManyToOne(() => User, { lazy: true}) 
     bidder: User; 
 
     @OneToMany(() => Image, (image) => image.auction)
