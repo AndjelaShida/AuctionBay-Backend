@@ -10,8 +10,8 @@ import { Bid } from "entities/bid.entity";
     @Module({
         imports: [TypeOrmModule.forFeature([Item, User, Auction, Bid])
     ],
-        providers: [ItemController], 
+        providers: [ItemService], 
         exports: [ItemService],
-        controllers: [ItemService],
+        controllers: [ItemController],
     })
 export class ItemModule {}

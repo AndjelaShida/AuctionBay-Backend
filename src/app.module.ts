@@ -5,13 +5,16 @@ import { Bid } from "entities/bid.entity";
 import { Item } from "entities/item.entity";
 import { User } from "entities/user.entity";
 import { Image } from "entities/image.entity";
-import { AuctionService } from './auction/auction.service';
-import { UserService } from './user/user.service';
-import { BidService } from './bid/bid.service';
-import { ItemService } from './item/item.service';
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { AuctionModule } from "auction/auction.module";
+
+import { ConfigModule, 
+    ConfigService } from "@nestjs/config";
 import { Role } from "entities/role.entity";
+import { UserModule } from "user/user.module";
+import { AuctionModule } from "auction/auction.module";
+import { ItemModule } from "item/item.module";
+import { BidModule } from "bid/bid.module";
+import { ImageModule } from "images/image.module";
+import { RoleModule } from "role/role.module";
 
 
 @Module({
@@ -33,14 +36,13 @@ import { Role } from "entities/role.entity";
                 synchronize: true, // Samo za razvoj! U produkciji postaviti na false
             }),
         }),
-        TypeOrmModule.forFeature([User, Auction, Bid, Item, Image, Role]),
-    ],
-    providers: [
-        AuctionService, 
-        UserService, 
-        BidService,
-        ItemService,
-    ],
+       UserModule,
+       AuctionModule,
+       ItemModule,
+       BidModule,
+       ImageModule,
+       RoleModule, ],
+
 })
 export class AppModule {}
 
