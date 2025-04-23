@@ -2,8 +2,9 @@ import { Controller, Delete, Get, NotFoundException, Param, Post } from "@nestjs
 import { ImageService } from "./image.service";
 import { Image } from "entities/image.entity";
 import { CreateImageDto } from "./dto/create-image.dto";
+import { ApiTags } from "@nestjs/swagger";
 
-
+@ApiTags('image')
 @Controller('images')
 export class ImageController {
     constructor( private imageService : ImageService) {}

@@ -3,7 +3,9 @@ import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/c
 import { CreateBidDto } from "./dto/create-bid.dto"
 import { Bid } from "entities/bid.entity";
 import { AuthGuard } from "@nestjs/passport";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags('bid')
 @Controller('bid') 
 @UseGuards(AuthGuard('jwt')) 
 export class BidController {

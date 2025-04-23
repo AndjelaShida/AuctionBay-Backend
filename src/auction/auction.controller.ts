@@ -1,7 +1,7 @@
 // '//Kontroler je tu da obrađuje HTTP zahteve (GET, POST, DELETE, itd.).
 // ////Svaka metoda unutar UserController treba da poziva odgovarajući metod iz AuctionService klase(putem Post, Get, Put itd ostalih metoda)
 // // koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { Auction } from 'entities/auction.entity';
@@ -13,8 +13,11 @@ import { User } from 'entities/user.entity';
 import { RoleEnum } from 'role/role.enum';
 import { Roles } from 'role/role.decorator';
 import { RoleGuard } from 'role/role.guard';
+import { ApiTags } from '@nestjs/swagger';
+import { AuctionQueryDto } from './dto/auctionQuey.dto';
 
 
+@ApiTags('auction')
 @Controller('auction')
 export class AuctionController {
   constructor(private readonly auctionService: AuctionService) {}
@@ -90,6 +93,25 @@ export class AuctionController {
 ): Promise<void> {
     await this.auctionService.remove(id, currentUser);
   }
+
+  //FILTRIRANJE AUKCIJE
+  @Get()
+  async filterAuction(@Query() auctionQueryDto: AuctionQueryDto) {
+      return this.auctionService.filterAuction(auctionQueryDto);
+    }
+
+//PAGINATION AUCTION
+  @Get()
+  async getAuctionPaginated(@Query() auctionQueryDto: AuctionQueryDto) {
+    return this.auctionService.getAuctionPaginated(auctionQueryDto);
+  }
+
+//SEARCH AUCTION-pretrazivanje
+@Get()
+async searchAuction(@Query() auctionQueryDto: AuctionQueryDto) {
+  return this.auctionService.searchAuction(auctionQueryDto);
+}
+
 }
 
 

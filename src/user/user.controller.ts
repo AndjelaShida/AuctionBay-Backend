@@ -17,9 +17,10 @@ import { User } from "entities/user.entity";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { JwtAuthGuard } from "auth/guards/jwt-auth.guard";
 import { CurrentUser } from "decorators/current-user.decorator";
+import { ApiTags } from "@nestjs/swagger";
 
 
-
+@ApiTags('users')
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UserController {

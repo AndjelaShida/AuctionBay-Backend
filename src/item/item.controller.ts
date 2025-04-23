@@ -8,8 +8,9 @@ import { ItemService } from "./item.service";
 import { Item } from "entities/item.entity";
 import { UpdateItemDto } from "./dto/update-item.dto";
 import { AuthGuard } from "@nestjs/passport";
+import { ApiTags } from "@nestjs/swagger";
 
-
+@ApiTags('item')
 @Controller('item')
 export class ItemController {
     constructor(private readonly itemService: ItemService) {}

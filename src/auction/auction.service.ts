@@ -8,6 +8,7 @@ import { User } from "entities/user.entity";
 import { CreateBidDto } from "bid/dto/create-bid.dto";
 import { Role } from "entities/role.entity";
 import { RoleEnum } from "role/role.enum";
+import { AuctionQueryDto } from "./dto/auctionQuey.dto";
 
 
 @Injectable()
@@ -165,6 +166,80 @@ export class AuctionService {
         //brisanje aukcije ako je sve ok
         await this.auctionRepository.delete(id);
     }
+
+    
+    //FILTRIRANJE AUKCIJE
+    async filterAuction(auctionQueryDto: AuctionQueryDto) {
+        const query = this.auctionRepository.createQueryBuilder('auction');//pocetak pravljenja SQL upita za tabelu auction
+
+        if(auctionQueryDto.name) {//proverava da li korisnik unosi vrednost za nema(ime aukcije),ako korisnik nije uneo ime, blok se nece izvrsiti
+            query.andWhere('auction.name LIKE :name', {name:`%${auctionQueryDto.name}%`}); //auction.name-pozivamo polje name u tabeli auction
+            //LIKE :name: Ovaj uslov kaže da treba da tražimo aukcije čije ime sadrži određeni tekst (koji je korisnik uneo). LIKE je operator koji omogućava pretragu sa wildcard-ovima.
+        } 
+
+        if(auctionQueryDto.startingPrice){
+            query.andWhere('auction.startingPrice >= :startingPrice', { startingPrice: auctionQueryDto.startingPrice});
+        }
+
+        if(auctionQueryDto.currentPrice){
+            query.andWhere('auction.currentPrice >= :currentPrice', { currentPrice: auctionQueryDto.currentPrice });
+        }
+
+        if(auctionQueryDto.userId){
+            query.andWhere('auction.userId = :userId', { userId: auctionQueryDto.userId });
+        }
+
+        if(auctionQueryDto.bidderId){
+            query.andWhere('auction.bidderId = :bidderId', { bidderId: auctionQueryDto.bidderId });
+        }
+        return query.getMany();
+    
+    }
+
+//PAGINATION AUCTION
+async getAuctionPaginated(auctionQueryDto: AuctionQueryDto) {
+    const { page = 1, limit = 10 } = auctionQueryDto;
+    
+    //Broj svih aukcija u bazi
+    const totalAuctions: number = await this.auctionRepository.count();
+    
+    //Računanje broja stranica
+    const pages = Math.ceil(totalAuctions / limit);
+
+    //Dobijanje aukcija sa paginacijom
+    const result = await this.auctionRepository
+        .createQueryBuilder('auction')
+        .skip((page - 1) * limit) // offset, određuje koji deo rezultata treba da se prikaže
+        .take(limit) // limitira broj rezultata
+        .getMany();
+
+    return {
+        data: result,
+        total: totalAuctions,  
+        pages,  
+    };
+}
+
+//SEARCH AUCTION-pretrazivanje
+async searchAuction(auctionQueryDto: AuctionQueryDto) {
+    const query = this.auctionRepository.createQueryBuilder('auction');
+
+    if(auctionQueryDto.name) {
+        query.andWhere('auction.name LIKE :name', {name:`%${auctionQueryDto.name}%`});
+    }
+
+    if(auctionQueryDto.description) {
+        query.andWhere('auction.description LIKE :description', {description:`%${auctionQueryDto.description}%`});
+    }
+
+    if(auctionQueryDto.startingPrice) {
+        query.andWhere('auction.startingPrice >= :startingPrice', {startingPrice:auctionQueryDto.startingPrice});
+    }
+
+    return query.getMany();
+}
+
+
     
 }
 
