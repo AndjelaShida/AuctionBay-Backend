@@ -17,6 +17,14 @@ export class CreateAuctionDto {
  @IsNumber()
  userId?: number ;
 
+ @IsOptional()
+ @IsNumber()
+ durationHours: number ;
+
+ @IsOptional()
+ @IsNumber()
+ durationMinutes?: number ;
+
 
 }
 

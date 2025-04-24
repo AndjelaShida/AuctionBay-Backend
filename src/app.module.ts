@@ -15,6 +15,7 @@ import { ItemModule } from "item/item.module";
 import { BidModule } from "bid/bid.module";
 import { ImageModule } from "images/image.module";
 import { RoleModule } from "role/role.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 
 @Module({
@@ -22,6 +23,7 @@ import { RoleModule } from "role/role.module";
         ConfigModule.forRoot({
             isGlobal: true // Čini konfiguraciju globalnom za celu aplikaciju
         }),
+        ScheduleModule.forRoot(),//za Cron, za automatsko zatvaranje aukcija
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService], // Injectuj ConfigService

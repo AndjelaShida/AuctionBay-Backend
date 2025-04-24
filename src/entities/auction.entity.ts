@@ -4,6 +4,7 @@ import { User } from "./user.entity";
 import { Bid } from "./bid.entity";
 import { Item } from "./item.entity";
 import { Image } from "./image.entity";
+import { timestamp } from "rxjs";
 
 @Entity()
 export class Auction extends BaseEntity {
@@ -20,6 +21,13 @@ export class Auction extends BaseEntity {
 
     @Column('decimal')
     currentPrice: number ; //trenutna cena aukcije(najveca ponuda)
+
+    @Column({ type: 'timestamp'})
+    endTime: Date ;
+
+    @Column({ default: false})
+    isClosed: boolean;
+
 
     @ManyToOne(() => User, (user) => user.auction, { lazy: true}) //lazi znaci da ce se user ucitati samo kad direktno pristupis auction.user
     user: User ;

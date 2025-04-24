@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Auction } from "entities/auction.entity";
-import { Repository } from "typeorm";
+import { LessThan, Repository } from "typeorm";
 import { CreateAuctionDto } from "./dto/create-auction.dto";
 import { UpdateAuctionDto } from "./dto/update-auction.dto";
 import { User } from "entities/user.entity";
@@ -9,6 +9,7 @@ import { CreateBidDto } from "bid/dto/create-bid.dto";
 import { Role } from "entities/role.entity";
 import { RoleEnum } from "role/role.enum";
 import { AuctionQueryDto } from "./dto/auctionQuey.dto";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 
 @Injectable()
@@ -29,9 +30,22 @@ export class AuctionService {
         createAuctionDto: CreateAuctionDto,
         currentUser: User,
     ): Promise<Auction> {
+        const now = new Date();
+        const hours = createAuctionDto.durationHours ?? 0;
+        const minutes = createAuctionDto.durationMinutes ?? 0;
+
+        if(hours === 0 && minutes === 0) {
+            throw new BadRequestException('Auction duration must be greater then 0')
+        }
+
+        const endTime = new Date(now.getTime() + (hours * 60 + minutes) * 60 * 1000);
+
         const newAuction = this.auctionRepository.create({
             ...createAuctionDto,
-           user: currentUser
+           user: currentUser,
+           currentPrice: createAuctionDto.startingPrice,
+           endTime,
+           isClosed: false,
         });
         return this.auctionRepository.save(newAuction);
     }
@@ -239,9 +253,18 @@ async searchAuction(auctionQueryDto: AuctionQueryDto) {
     return query.getMany();
 }
 
+//AUTOMATSKO ZATVARANJE AUKCIJE
+@Cron(CronExpression.EVERY_30_SECONDS)
+async closeExpiredAuction(){
+    const currentDate = new Date();
+}
 
     
+
 }
+
+    
+
 
 
 
