@@ -10,6 +10,7 @@ import { Role } from "entities/role.entity";
 import { RoleEnum } from "role/role.enum";
 import { AuctionQueryDto } from "./dto/auctionQuey.dto";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { EmailService } from "email/email.service";
 
 
 @Injectable()
@@ -22,7 +23,9 @@ export class AuctionService {
         private readonly userRepository: Repository<User>,
 
         @InjectRepository(Role)
-        private readonly roleRepository: Repository<Role>
+        private readonly roleRepository: Repository<Role>,
+
+        private readonly emailService: EmailService,
     ) {}
 
     //KREIRANJE AUKCIJE
@@ -206,6 +209,16 @@ export class AuctionService {
         if(auctionQueryDto.bidderId){
             query.andWhere('auction.bidderId = :bidderId', { bidderId: auctionQueryDto.bidderId });
         }
+
+        if(
+            !auctionQueryDto.name &&
+            !auctionQueryDto.startingPrice &&
+            !auctionQueryDto.currentPrice &&
+            !auctionQueryDto.userId &&
+            !auctionQueryDto.bidderId
+        ) {
+            throw new BadRequestException('At least one filter must be provided');
+        }
         return query.getMany();
     
     }
@@ -257,6 +270,26 @@ async searchAuction(auctionQueryDto: AuctionQueryDto) {
 @Cron(CronExpression.EVERY_30_SECONDS)
 async closeExpiredAuction(){
     const currentDate = new Date();
+
+    const expiredAuction = await this.auctionRepository.find({
+        where: {
+            endTime: LessThan(currentDate),
+            isClosed: false,
+        },
+    });
+    for(const auction of expiredAuction) {
+        auction.isClosed = true ;
+
+        //simuliramo slanje emaila korisniku cija aukcija je istekla
+        this.emailService.sendEmail(
+            auction.user.email,
+            'The auction has expired.',
+             `Your Auction "${auction.name}" has expired. Thank you for using our service.`
+
+        )
+
+        await this.auctionRepository.save(auction);
+    }
 }
 
     
