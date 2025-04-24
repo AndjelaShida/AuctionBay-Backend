@@ -112,6 +112,12 @@ async searchAuction(@Query() auctionQueryDto: AuctionQueryDto) {
   return this.auctionService.searchAuction(auctionQueryDto);
 }
 
+//AUTOMATSKO ZATVARANJE AUKCIJE
+ @Post('close-expired')
+ async closeExpiredAuction() {
+  return this.auctionService.closeExpiredAuction()
+ }
+
 }
 
 

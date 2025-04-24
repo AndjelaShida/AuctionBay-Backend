@@ -11,6 +11,7 @@ import { RoleEnum } from "role/role.enum";
 import { AuctionQueryDto } from "./dto/auctionQuey.dto";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { EmailService } from "email/email.service";
+import { Bid } from "entities/bid.entity";
 
 
 @Injectable()
@@ -273,22 +274,45 @@ async closeExpiredAuction(){
 
     const expiredAuction = await this.auctionRepository.find({
         where: {
-            endTime: LessThan(currentDate),
-            isClosed: false,
+            endTime: LessThan(currentDate), //trazimo aukcije ciji je endTime manji od trenutnog vremena(sto znaci da su aukcije istekle)
+            isClosed: false, //i isClosed:false, znaci da aukcija jos nije istekla, znaci trebamo je zatvoriti
         },
+        relations: ['user', 'bids', 'bids.user'] //ovde se trazi da se ucitaju povezani podaci za user(vlasnika auckije),
+        //bids8(ponude aukciji) i bids.user(korisnici koji su dali ponude)
     });
-    for(const auction of expiredAuction) {
-        auction.isClosed = true ;
+    for(const auction of expiredAuction) {//for petlja iretira kroz sve aukcije koje su istekle i koje nisu zatvorene, za svaku aukciju se izvrsava kod unutar petlje
+        auction.isClosed = true ; //zatvaramo aukciju tako sto posatavljamo na true.Ovo oznacava da je aukcija zatvorena.
 
         //simuliramo slanje emaila korisniku cija aukcija je istekla
         this.emailService.sendEmail(
-            auction.user.email,
-            'The auction has expired.',
-             `Your Auction "${auction.name}" has expired. Thank you for using our service.`
-
+            auction.user.email, //email adresa vlasnika aukcije
+            'The auction has expired.',//subject emaila
+             `Your Auction "${auction.name}" has expired. Thank you for using our service.`//telo emaila
         )
 
-        await this.auctionRepository.save(auction);
+        //nalazenje pobednicke ponude
+        const winningBid = auction.bids.reduce((max: Bid | null, bid: Bid) => //Ovde koristimo metodu reduce() da pronadjemo pobednicku ponudu (ponudu sa najvećom vrednoscu).
+            (bid.amount > (max?.amount ?? 0) ? bid : max), null);
+
+    if(winningBid) {
+        this.emailService.sendEmail(
+            winningBid.user.email,
+             `Congratulations! You won the auction "${auction.name}"`,
+            `You have won the auction with your bid of ${winningBid.amount}.`
+        )
+        //email ostalim ucesnicima
+        const losers = auction.bids
+        .map(b => b.user)//pravimo niz korisnika koji su dali ponude na aukciji
+        .filter(u => u.id !== winningBid.user.id);//filtriramo korisnike koji nisu pobedili(tako sto iskljucujemo korisnika koji je dao pobednicku ponudu)
+
+        const uniqueLoser = Array.from(new Map(losers.map(u => [u.id, u])).values());//uklanjamo duplikate(ako postoje slucajno)
+
+        for ( const losers of uniqueLoser) { //saljemo email svim korisnicima koji nisu pobedili aukcije
+            this.emailService.sendAuctionLoserEmail(losers.email, auction.name);//Pozivamo metodu za slanje emaila korisnicima koji nisu pobednici
+        }
+    }
+
+        await this.auctionRepository.save(auction);//cuvamo stanje aukcije
     }
 }
 
