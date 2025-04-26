@@ -161,6 +161,25 @@ export class AuctionService {
         return auction ;
     }
 
+    //PRODAVAC VIDI ISTORIJU PONUDA NA SVOJOJ AUKCIJI(me/auction/:id/bid)
+    async getBidsForOwnAuction(auctionId: number, currentUser: User):Promise<Bid []> {
+        //trazim aukciju
+        const auction = await this.auctionRepository.findOne({
+            where: { id: auctionId },
+            relations: ['user', 'bids', 'bids.user']
+    }) 
+    //ako aukcija ne postoji -bacam greksu
+    if(!auction) {
+        throw new NotFoundException(`Auction with ID ${auctionId} not found`);
+    } 
+    //provera da li je vlasnik aukcije isto kao current user
+    if(auction.user.id !== currentUser.id) {
+        throw new ForbiddenException('This is not your auction and you cant see bids on this auction.');
+
+    }
+    return auction.bids ;
+    }
+
     // BRISANJE AUKCIJE
     async remove(
         id: number, 
@@ -272,7 +291,7 @@ async searchAuction(auctionQueryDto: AuctionQueryDto) {
 async closeExpiredAuction(){
     const currentDate = new Date();
 
-    const expiredAuction = await this.auctionRepository.find({
+    const expiredAuctions = await this.auctionRepository.find({
         where: {
             endTime: LessThan(currentDate), //trazimo aukcije ciji je endTime manji od trenutnog vremena(sto znaci da su aukcije istekle)
             isClosed: false, //i isClosed:false, znaci da aukcija jos nije istekla, znaci trebamo je zatvoriti
@@ -280,45 +299,58 @@ async closeExpiredAuction(){
         relations: ['user', 'bids', 'bids.user'] //ovde se trazi da se ucitaju povezani podaci za user(vlasnika auckije),
         //bids8(ponude aukciji) i bids.user(korisnici koji su dali ponude)
     });
-    for(const auction of expiredAuction) {//for petlja iretira kroz sve aukcije koje su istekle i koje nisu zatvorene, za svaku aukciju se izvrsava kod unutar petlje
+
+    for(const auction of expiredAuctions) {//for petlja iretira kroz sve aukcije koje su istekle i koje nisu zatvorene, za svaku aukciju se izvrsava kod unutar petlje
         auction.isClosed = true ; //zatvaramo aukciju tako sto posatavljamo na true.Ovo oznacava da je aukcija zatvorena.
 
         //simuliramo slanje emaila korisniku cija aukcija je istekla
-        this.emailService.sendEmail(
+        await this.safeSendEmail(
             auction.user.email, //email adresa vlasnika aukcije
             'The auction has expired.',//subject emaila
              `Your Auction "${auction.name}" has expired. Thank you for using our service.`//telo emaila
-        )
+        );
 
         //nalazenje pobednicke ponude
         const winningBid = auction.bids.reduce((max: Bid | null, bid: Bid) => //Ovde koristimo metodu reduce() da pronadjemo pobednicku ponudu (ponudu sa najvećom vrednoscu).
             (bid.amount > (max?.amount ?? 0) ? bid : max), null);
 
-    if(winningBid) {
-        this.emailService.sendEmail(
+            //saljemo email pobedniku
+        if(winningBid) {
+        await this.safeSendEmail(
             winningBid.user.email,
              `Congratulations! You won the auction "${auction.name}"`,
             `You have won the auction with your bid of ${winningBid.amount}.`
-        )
-        //email ostalim ucesnicima
+        );
+
+        //pronalazimo sve gubitnike
         const losers = auction.bids
         .map(b => b.user)//pravimo niz korisnika koji su dali ponude na aukciji
         .filter(u => u.id !== winningBid.user.id);//filtriramo korisnike koji nisu pobedili(tako sto iskljucujemo korisnika koji je dao pobednicku ponudu)
 
         const uniqueLoser = Array.from(new Map(losers.map(u => [u.id, u])).values());//uklanjamo duplikate(ako postoje slucajno)
-
-        for ( const losers of uniqueLoser) { //saljemo email svim korisnicima koji nisu pobedili aukcije
-            this.emailService.sendAuctionLoserEmail(losers.email, auction.name);//Pozivamo metodu za slanje emaila korisnicima koji nisu pobednici
-        }
+       
+        await Promise.all(
+            uniqueLoser.map((loser: User)  => this.safeSendEmail
+                (loser.email, 
+                `Auction result for "${auction.name}"`,
+                `Thank you for your participation. Unfortunately, you did not win this auction.`))//slanje emaila paralelno svima(pobednicima i gubitnicima )
+        );
     }
 
         await this.auctionRepository.save(auction);//cuvamo stanje aukcije
+    } 
+ }
+
+//safeSendEmail funckija-funkcija za hvatanje gresaka kod slanja emaila pobedniku i gubitnicima
+private async safeSendEmail(to:string, subject: string, message:string) {
+    try{
+        await this.emailService.sendEmail(to, subject, message);
+    }catch (error) {
+        console.error(`Failed to send email to ${to}:`, error);
     }
 }
-
-    
-
 }
+
 
     
 
