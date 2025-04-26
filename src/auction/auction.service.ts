@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Auction } from "entities/auction.entity";
 import { LessThan, Repository } from "typeorm";
@@ -12,6 +12,8 @@ import { AuctionQueryDto } from "./dto/auctionQuey.dto";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { EmailService } from "email/email.service";
 import { Bid } from "entities/bid.entity";
+import { AutoBidEntity } from "bid/autoBid/autoBid.entity";
+import { AutoBidDto } from "bid/autoBid/create-autoBid.dto";
 
 
 @Injectable()
@@ -25,6 +27,12 @@ export class AuctionService {
 
         @InjectRepository(Role)
         private readonly roleRepository: Repository<Role>,
+
+        @InjectRepository(Bid)
+        private readonly bidRepository : Repository<Bid>,
+
+        @InjectRepository(AutoBidEntity)
+        private readonly autoBidRepository: Repository<AutoBidEntity>,
 
         private readonly emailService: EmailService,
     ) {}
@@ -126,7 +134,7 @@ export class AuctionService {
        
     }
 
-    // BIDDING NA AUKCIJU (/auction/:id/bid)
+    // BIDDING NA AUKCIJU (/auction/:id/bid)-rucno
     async bidOnAuction(
         auctionId: number, 
         createBidDto: CreateBidDto,
@@ -285,6 +293,133 @@ async searchAuction(auctionQueryDto: AuctionQueryDto) {
 
     return query.getMany();
 }
+
+//AUTOMATSKO BIDOVANJE-rucno
+async automaticBid(
+    auctionId: number,
+    currentUser: User,
+    createBidDto: CreateBidDto,
+): Promise<Auction> {
+    //trazim aukciju
+    const auction = await this.auctionRepository.findOne({
+        where: { id: auctionId},
+        relations: ['bids']
+    });
+    //ako ne postoji aukcija sa tim id-jem, bacam gresku
+    if(!auction) {
+        throw new NotFoundException('Auction is not found')
+    }
+    //provera da li korisnik pokusava da licitira na svoju aukciju
+    if(auction.user.id === currentUser.id) {
+        throw new ForbiddenException('You cannot bid on your own auction')
+    }
+    //proveri da li je trenutni bid veci od trenutne cene
+    if(createBidDto.amount <= auction.currentPrice) {
+        throw new BadRequestException('Bid must be higher then the current bid')
+    }
+
+
+  //pravim novi objekat bid 
+    const bid = new Bid();
+    //setujem polja(popunjavam mu vrednosti)
+    bid.amount = createBidDto.amount;
+    bid.user = currentUser;
+    bid.auction = auction;
+
+     await this.bidRepository.save(bid);
+
+     auction.currentPrice = bid.amount ;
+
+     await this.auctionRepository.save(auction);
+
+    
+     return auction;
+}
+
+//AUTOMATSKO BID-OVANJE-automatsko
+async autoBid(
+    auctionId: number,
+     autoBidDto:  AutoBidDto,
+     currentUser : User,
+    ): Promise<Bid | null> {
+        const auction = await this.auctionRepository.findOne({
+            where: { id: auctionId},
+            relations: ['bids',  'user']
+        });
+        if(!auction) {
+            throw new NotFoundException('Auction not found or does not exist')
+        }
+        //provera da li korisnik vec ima AutoBud za tu aukciju
+        const autoBidForThisUser = await this.autoBidRepository.findOne({
+            where: {
+                user: currentUser,
+                auction: auction,
+            } 
+        });
+
+            if(autoBidForThisUser) {
+                throw new BadRequestException('You already have automatic bid on this auction')
+            }
+
+        //provera da korisnik nije vlasnik svoje aukcije
+        if(auction.user.id === currentUser.id) {
+            throw new UnauthorizedException('You cannot bid your own auction')
+        }
+       
+        //dodeljujemo vrednosti
+        const autoBid = new AutoBidEntity();
+        autoBid.user = currentUser ;
+        autoBid.auction = auction ;
+        autoBid.maxAmount = autoBidDto.maxAmount;
+
+        await this.autoBidRepository.save(autoBid);
+
+        //proveravamo sve aktivne bidove vezane za tu aukciju
+        const activeBid = await this.autoBidRepository.find({
+            where: {auction: auction}
+        });
+        
+        let stillBidding = true;
+        while(stillBidding) {
+            stillBidding = false;
+        }
+        //iznacujemo autobidove, ciji je maxAmount manji od trenutne cene
+        const validBid = activeBid.filter(autoBid => autoBid.maxAmount > auction.currentPrice) ;
+
+        //iretiraj kroz sve validne autobudove
+        for(const autoBid of validBid) {
+            let newBidAmount = auction.currentPrice + 1 ;
+
+            //ako je novi bid presao maxAmount, postavi ga na maxAmount
+            if(newBidAmount > autoBid.maxAmount) {
+                newBidAmount = autoBid.maxAmount;
+            }
+            //ako je novi bid idalje manji od trenutne cene, preskoci ga
+            if(newBidAmount <= auction.currentPrice) {
+                continue;
+            }
+
+            //pravimo novi bid
+            const bid = new Bid();
+            bid.amount = newBidAmount;
+            bid.user = autoBid.user ;
+            bid.auction = auction ;
+
+            await this.bidRepository.save(bid);
+
+            //azuriraj cenu aukcije sa novim bidom
+            auction.currentPrice = newBidAmount;
+            auction.bidder = autoBid.user ; //postavi novog vlasnika aukcije
+            await this.auctionRepository.save(auction);
+
+            stillBidding = true ;
+        }
+
+        return null ;
+        
+    }
+
+
 
 //AUTOMATSKO ZATVARANJE AUKCIJE
 @Cron(CronExpression.EVERY_30_SECONDS)
