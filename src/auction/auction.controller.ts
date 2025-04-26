@@ -1,6 +1,6 @@
-// '//Kontroler je tu da obrađuje HTTP zahteve (GET, POST, DELETE, itd.).
-// ////Svaka metoda unutar UserController treba da poziva odgovarajući metod iz AuctionService klase(putem Post, Get, Put itd ostalih metoda)
-// // koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
+//Kontroler je tu da obrađuje HTTP zahteve (GET, POST, DELETE, itd.).
+//Svaka metoda unutar UserController treba da poziva odgovarajući metod iz AuctionService klase(putem Post, Get, Put itd ostalih metoda)
+//koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { CreateAuctionDto } from './dto/create-auction.dto';
@@ -15,6 +15,7 @@ import { Roles } from 'role/role.decorator';
 import { RoleGuard } from 'role/role.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { AuctionQueryDto } from './dto/auctionQuey.dto';
+import { Bid } from 'entities/bid.entity';
 
 
 @ApiTags('auction')
@@ -80,6 +81,16 @@ export class AuctionController {
     @CurrentUser() currentUser: User,
   ): Promise<Auction> {
     return this.auctionService.bidOnAuction(auctionId, bidData, currentUser);
+  }
+
+  //PRODAVAC VIDI ISTORIJU PONUDA NA SVOJOJ AUKCIJI
+  @Get('me/auction/:id/bid')
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  async getBidsForOwnAuction(
+    @Param('id') id: number,
+    @CurrentUser() currentUser: User,
+  ): Promise<Bid []> {
+    return this.auctionService.getBidsForOwnAuction(id,currentUser);
   }
 
   // BRISANJE AUKCIJE-role
