@@ -15,7 +15,6 @@ import { Bid } from "entities/bid.entity";
 import { AutoBidEntity } from "bid/autoBid/autoBid.entity";
 import { AutoBidDto } from "bid/autoBid/create-autoBid.dto";
 
-
 @Injectable()
 export class AuctionService {
     constructor(
@@ -416,9 +415,6 @@ async autoBid(
         }
 
         return lastCreatedBid;
-
-
-        
     }
 
 //AUTOMATSKO ZATVARANJE AUKCIJE+slanje emaila pobedniku i gubitniku
@@ -482,6 +478,7 @@ private async safeSendEmail(to:string, subject: string, message:string) {
         await this.emailService.sendEmail(to, subject, message);
     }catch (error) {
         console.error(`Failed to send email to ${to}:`, error);
+        throw new Error('Email sendig failed')
     }
 }
 }

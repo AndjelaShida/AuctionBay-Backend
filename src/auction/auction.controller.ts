@@ -16,6 +16,7 @@ import { RoleGuard } from 'role/role.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { AuctionQueryDto } from './dto/auctionQuey.dto';
 import { Bid } from 'entities/bid.entity';
+import { AutoBidDto } from 'bid/autoBid/create-autoBid.dto';
 
 
 @ApiTags('auction')
@@ -123,11 +124,33 @@ async searchAuction(@Query() auctionQueryDto: AuctionQueryDto) {
   return this.auctionService.searchAuction(auctionQueryDto);
 }
 
+//AUTOMATSKO BIDOVANJE-rucno
+@Post('automaticBid')
+async automaticBid(
+  @Param() auctionId: number,
+  @CurrentUser() currentUser: User,
+  @Body() createBidDto: CreateBidDto,
+  
+): Promise<Auction> {
+  return this.auctionService.automaticBid(auctionId, currentUser, createBidDto)
+}
+
+//AUTOMATSKO BID-OVANJE-automatsko
+@Post('autoBid')
+async autoBid (
+  @Body() autoBidDto: AutoBidDto,
+  @CurrentUser() currentUser: User,
+  @Param('auctionId') auctionId: number,
+): Promise<Bid | null> {
+  return this.auctionService.autoBid(auctionId, autoBidDto, currentUser)
+}
+
 //AUTOMATSKO ZATVARANJE AUKCIJE
  @Post('close-expired')
  async closeExpiredAuction() {
   return this.auctionService.closeExpiredAuction()
  }
+
 
 }
 
