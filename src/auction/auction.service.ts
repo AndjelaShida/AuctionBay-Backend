@@ -338,10 +338,10 @@ async automaticBid(
 
 //AUTOMATSKO BID-OVANJE-automatsko
 async autoBid(
-    auctionId: number,
-     autoBidDto:  AutoBidDto,
-     currentUser : User,
-    ): Promise<Bid | null> {
+    auctionId: number,//id aukcije na kojoj postavljam autoBid
+     autoBidDto:  AutoBidDto,//objekat koji nosi max iznos koji korisnik zeli da ponudi
+     currentUser : User,//trenutni korisnik koji zeli da biduje
+    ): Promise<Bid | null> {// | -ili
         const auction = await this.auctionRepository.findOne({
             where: { id: auctionId},
             relations: ['bids',  'user']
@@ -349,14 +349,15 @@ async autoBid(
         if(!auction) {
             throw new NotFoundException('Auction not found or does not exist')
         }
-        //provera da li korisnik vec ima AutoBud za tu aukciju
+        
+        //pravimo novi bid za u+izabranu aukciju
         const autoBidForThisUser = await this.autoBidRepository.findOne({
             where: {
                 user: currentUser,
                 auction: auction,
             } 
         });
-
+        //provera da li korisnik vec ima AutoBud za tu aukciju
             if(autoBidForThisUser) {
                 throw new BadRequestException('You already have automatic bid on this auction')
             }
@@ -379,15 +380,14 @@ async autoBid(
             where: {auction: auction}
         });
         
-        let stillBidding = true;
-        while(stillBidding) {
-            stillBidding = false;
-        }
-        //iznacujemo autobidove, ciji je maxAmount manji od trenutne cene
+
+        //izbacujemo autobidove, ciji je maxAmount manji od trenutne cene
         const validBid = activeBid.filter(autoBid => autoBid.maxAmount > auction.currentPrice) ;
 
+        let lastCreatedBid : Bid | null = null;
+
         //iretiraj kroz sve validne autobudove
-        for(const autoBid of validBid) {
+        for(const AutoBidEntity of validBid) {//Iteriramo kroz svaki pojedinačni automatski bid koji je prošao prethodnu filtraciju (validBid).
             let newBidAmount = auction.currentPrice + 1 ;
 
             //ako je novi bid presao maxAmount, postavi ga na maxAmount
@@ -412,16 +412,16 @@ async autoBid(
             auction.bidder = autoBid.user ; //postavi novog vlasnika aukcije
             await this.auctionRepository.save(auction);
 
-            stillBidding = true ;
+            lastCreatedBid = bid ;
         }
 
-        return null ;
+        return lastCreatedBid;
+
+
         
     }
 
-
-
-//AUTOMATSKO ZATVARANJE AUKCIJE
+//AUTOMATSKO ZATVARANJE AUKCIJE+slanje emaila pobedniku i gubitniku
 @Cron(CronExpression.EVERY_30_SECONDS)
 async closeExpiredAuction(){
     const currentDate = new Date();
