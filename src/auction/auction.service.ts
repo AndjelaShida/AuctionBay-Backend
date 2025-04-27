@@ -15,6 +15,7 @@ import { Bid } from "entities/bid.entity";
 import { AutoBidEntity } from "bid/autoBid/autoBid.entity";
 import { AutoBidDto } from "bid/autoBid/create-autoBid.dto";
 
+
 @Injectable()
 export class AuctionService {
     constructor(

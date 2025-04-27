@@ -9,7 +9,7 @@ export class EmailService {
         console.log(`Poruka: ${message}`);
     }
 
-    async sendAuctionLoserEmail(email:string, auctionName: string) {
+    async sendAuctionLoserEmail(email:string, auctionName: string):Promise<void> {
         await this.sendEmail(
              email,
              `Auction result for "${auctionName}"`,
