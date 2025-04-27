@@ -7,10 +7,13 @@ import { User } from "entities/user.entity";
 import { AuctionController } from "./auction.controller";
 import { AuctionService } from "./auction.service";
 import { Role } from "entities/role.entity";
+import { AutoBidEntity } from "bid/autoBid/autoBid.entity";
+import { EmailModule } from "email/email.module";
 
 
 @Module({
-    imports:[TypeOrmModule.forFeature([Auction, User, Item, Bid, Role])
+    imports:[TypeOrmModule.forFeature([Auction, User, Item, Bid, Role, AutoBidEntity ]),
+    EmailModule
 ],
     controllers: [AuctionController],
     providers:[AuctionService],
