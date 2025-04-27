@@ -1,6 +1,9 @@
-import { IsNumber } from "class-validator";
+import { IsNumber, IsString } from "class-validator";
+import { User } from "entities/user.entity";
 
 export class AutoBidDto {
+
+
     @IsNumber()
     auctionId: number ;
 
