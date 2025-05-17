@@ -16,6 +16,8 @@ import { BidModule } from "bid/bid.module";
 import { ImageModule } from "images/image.module";
 import { RoleModule } from "role/role.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { ThrottlerModule, ThrottlerGuard} from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
 
 
 @Module({
@@ -24,6 +26,10 @@ import { ScheduleModule } from "@nestjs/schedule";
             isGlobal: true // Čini konfiguraciju globalnom za celu aplikaciju
         }),
         ScheduleModule.forRoot(),//za Cron, za automatsko zatvaranje aukcija
+        ThrottlerModule.forRoot(<any>{//broj zahteva prema serveru u minuti (u 60sek se moze poslati max 10 zahteva)
+           ttl: 60, //ttl-time to live
+           limit: 10,
+        }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService], // Injectuj ConfigService
@@ -43,7 +49,14 @@ import { ScheduleModule } from "@nestjs/schedule";
        ItemModule,
        BidModule,
        ImageModule,
-       RoleModule, ],
+       RoleModule, 
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard, //postavljanje ThrorrlerGuard globalno
+        },
+    ],
 
 })
 export class AppModule {}
