@@ -1,7 +1,7 @@
 //Kontroler je tu da obrađuje HTTP zahteve (GET, POST, DELETE, itd.).
 //Svaka metoda unutar UserController treba da poziva odgovarajući metod iz AuctionService klase(putem Post, Get, Put itd ostalih metoda)
 //koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { Auction } from 'entities/auction.entity';
@@ -13,11 +13,10 @@ import { User } from 'entities/user.entity';
 import { RoleEnum } from 'role/role.enum';
 import { Roles } from 'role/role.decorator';
 import { RoleGuard } from 'role/role.guard';
-import { ApiTags } from '@nestjs/swagger';
-import { AuctionQueryDto } from './dto/auctionQuey.dto';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AuctionQueryDto } from './dto/auctionQuery.dto';
 import { Bid } from 'entities/bid.entity';
 import { AutoBidDto } from 'bid/autoBid/create-autoBid.dto';
-
 
 @ApiTags('auction')
 @Controller('auction')
@@ -26,7 +25,11 @@ export class AuctionController {
 
   //KREIRANJE AUKCIJE
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt')) 
+  @ApiBearerAuth() //oznacava sa ruta koristi JWT auth
+  @ApiOperation({ summary: 'Create a new auction'}) //opis operacije
+  @ApiResponse({ status: 201, description: 'The auction has been successfully created', type: Auction})
+  @ApiResponse({ status: 401, description:'Unthorized' })
   async create(
     @Body() createAuctionDto: CreateAuctionDto,
     @CurrentUser() user: User,
@@ -49,6 +52,10 @@ export class AuctionController {
   // AŽURIRAJ AUKCIJU-role
   @Put(':id')
   @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update auction' })
+  @ApiResponse({ status: 200, description: 'Auction has been update successfully', type: Auction})
+  @ApiResponse({ status: 401, description: 'Unauthorized '})
   @Roles(RoleEnum.SELLER)
   async update(
     @Param('id') id: number,
@@ -61,6 +68,10 @@ export class AuctionController {
   // AŽURIRANJE SAMO SVOJIH AUKCIJA (me/auction/:id)-role
   @Put('me/auction/:id')
   @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update just your own auction'})
+  @ApiResponse({ status: 200, description: 'Your own auction has been update successfully'})
+  @ApiResponse({ status: 401, description: 'Unauthorized '})
   @Roles(RoleEnum.SELLER)
   async updateOwnAuction(
     @Param('id') id: number,
@@ -75,6 +86,10 @@ export class AuctionController {
   // BIDDING NA AUKCIJU (/auction/:id/bid)-role
   @Post(':id/bid')
   @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bidding on auction'})
+  @ApiResponse({ status: 201, description: 'Bid successfully placed', type: Auction })
+   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Roles(RoleEnum.SELLER, RoleEnum.BUYER, RoleEnum.ADMIN)
   async bidOnAuction(
     @Param('id') auctionId: number,
@@ -86,7 +101,11 @@ export class AuctionController {
 
   //PRODAVAC VIDI ISTORIJU PONUDA NA SVOJOJ AUKCIJI
   @Get('me/auction/:id/bid')
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles(RoleEnum.SELLER)  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all history bid on your own auction'})
+  @ApiResponse({ status: 200, description: 'Get all bids for your own auction', type: Auction })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getBidsForOwnAuction(
     @Param('id') id: number,
     @CurrentUser() currentUser: User,
@@ -97,6 +116,11 @@ export class AuctionController {
   // BRISANJE AUKCIJE-role
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete auction by id(Admin only'})
+  @ApiResponse({ status: 204, description:'Auction deleted successfully'})
+  @ApiResponse({ status: 401, description: 'Unauthorized'})
+  @ApiResponse({ status: 403, description: 'Forbidden'})
   @Roles(RoleEnum.ADMIN)
   @HttpCode(204)
   async remove(
@@ -117,7 +141,7 @@ async getAuctions(
 //AUTOMATSKO BIDOVANJE-rucno
 @Post('automaticBid')
 async automaticBid(
-  @Param() auctionId: number,
+  @Param('auctionId') auctionId: number,
   @CurrentUser() currentUser: User,
   @Body() createBidDto: CreateBidDto,
   
@@ -126,7 +150,7 @@ async automaticBid(
 }
 
 //AUTOMATSKO BID-OVANJE-automatsko
-@Post('autoBid')
+@Post('autoBid/:auctionId')
 async autoBid (
   @Body() autoBidDto: AutoBidDto,
   @CurrentUser() currentUser: User,

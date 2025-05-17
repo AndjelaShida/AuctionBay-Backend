@@ -8,14 +8,12 @@ import { User } from "entities/user.entity";
 import { CreateBidDto } from "bid/dto/create-bid.dto";
 import { Role } from "entities/role.entity";
 import { RoleEnum } from "role/role.enum";
-import { AuctionQueryDto } from "./dto/auctionQuey.dto";
+import { AuctionQueryDto } from "./dto/auctionQuery.dto";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { EmailService } from "email/email.service";
 import { Bid } from "entities/bid.entity";
 import { AutoBidEntity } from "bid/autoBid/autoBid.entity";
 import { AutoBidDto } from "bid/autoBid/create-autoBid.dto";
-
-
 
 @Injectable()
 export class AuctionService {
