@@ -1,5 +1,3 @@
-//service je odgovoran za obradu podataka, komunikacijom sa bazom i implementacijom pravila aplikacije
-
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Auction } from "entities/auction.entity";

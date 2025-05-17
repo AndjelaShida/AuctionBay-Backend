@@ -1,4 +1,4 @@
-import { IsDecimal, IsInt, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsDate, IsDecimal, IsInt, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
 export class AuctionQueryDto { //dto koji sadrzi sve u jednom: Paginate,Filter i Search za Auction, odnosno radi sa svim upitima(query)
         @IsOptional()
@@ -13,7 +13,6 @@ export class AuctionQueryDto { //dto koji sadrzi sve u jednom: Paginate,Filter i
         @IsNumber()
         startingPrice: number;
         
-    
         @IsOptional()
         @IsDecimal()
         currentPrice?: number;
@@ -26,13 +25,21 @@ export class AuctionQueryDto { //dto koji sadrzi sve u jednom: Paginate,Filter i
         @IsNumber()
         bidderId?: number;
 
+        @IsDate()
+        @IsOptional()
+        startDate: Date;
+
+        @IsDate()
+        @IsOptional()
+        endDate: Date;
+
         @IsOptional()
         @IsInt()
         @Min(1)
-        page: number ;
+        page: number = 1 ;
         
         @IsOptional()
         @IsInt()
         @Min(1)
-        limit: number;
+        limit: number = 10;
 }

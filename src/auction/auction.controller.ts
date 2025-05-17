@@ -106,22 +106,12 @@ export class AuctionController {
     await this.auctionService.remove(id, currentUser);
   }
 
-  //FILTRIRANJE AUKCIJE
-  @Get()
-  async filterAuction(@Query() auctionQueryDto: AuctionQueryDto) {
-      return this.auctionService.filterAuction(auctionQueryDto);
-    }
-
-//PAGINATION AUCTION
-  @Get()
-  async getAuctionPaginated(@Query() auctionQueryDto: AuctionQueryDto) {
-    return this.auctionService.getAuctionPaginated(auctionQueryDto);
-  }
-
-//SEARCH AUCTION-pretrazivanje
-@Get()
-async searchAuction(@Query() auctionQueryDto: AuctionQueryDto) {
-  return this.auctionService.searchAuction(auctionQueryDto);
+  //FILTRIRANJE AUKCIJE, PAGINATION AUCTION, SEARCH AUCTION
+@Get('search-paginated-filter')
+async getAuctions(
+  @Query() auctionQueryDto: AuctionQueryDto
+) {
+  return this.auctionService.getAuctions(auctionQueryDto);
 }
 
 //AUTOMATSKO BIDOVANJE-rucno
