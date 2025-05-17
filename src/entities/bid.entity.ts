@@ -18,7 +18,5 @@ export class Bid extends BaseEntity {
 
     @ManyToOne(()=> Item, (item) => item.bids)
     item: Item ;
-    
-
 
 }
