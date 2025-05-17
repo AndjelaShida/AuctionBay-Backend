@@ -3,13 +3,14 @@ import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorHandler } from 'common/global-error-handler';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 async function bootstrap() {
   try {
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalFilters(new GlobalErrorHandler());
-  
+
   const config = new DocumentBuilder()
   .setTitle('AuctionBay API')
   .setDescription('API documentation for AuctionBay')
