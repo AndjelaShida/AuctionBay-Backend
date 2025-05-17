@@ -18,6 +18,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { JwtAuthGuard } from "auth/guards/jwt-auth.guard";
 import { CurrentUser } from "decorators/current-user.decorator";
 import { ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 
 
 @ApiTags('users')

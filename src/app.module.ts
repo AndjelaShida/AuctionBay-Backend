@@ -27,8 +27,8 @@ import { APP_GUARD } from "@nestjs/core";
         }),
         ScheduleModule.forRoot(),//za Cron, za automatsko zatvaranje aukcija
         ThrottlerModule.forRoot(<any>{//broj zahteva prema serveru u minuti (u 60sek se moze poslati max 10 zahteva)
-           ttl: 60, //ttl-time to live
            limit: 10,
+           ttl: 60, //ttl-time to live,
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
