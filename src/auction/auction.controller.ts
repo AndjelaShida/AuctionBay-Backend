@@ -2,7 +2,6 @@
 //Svaka metoda unutar UserController treba da poziva odgovarajući metod iz AuctionService klase(putem Post, Get, Put itd ostalih metoda)
 //koja je odgovorna za poslovnu logiku i rad sa bazom podataka.
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { AuctionService } from './auction.service';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { Auction } from 'entities/auction.entity';
 import { UpdateAuctionDto } from './dto/update-auction.dto';
@@ -17,11 +16,18 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { AuctionQueryDto } from './dto/auctionQuery.dto';
 import { Bid } from 'entities/bid.entity';
 import { AutoBidDto } from 'bid/autoBid/create-autoBid.dto';
+import { AuctionCoreService } from './auction-core.service';
+import { AuctionBidService } from './auction-bid.service';
+import { AuctionQueryService } from './auction-query.service';
 
 @ApiTags('auction')
 @Controller('auction')
 export class AuctionController {
-  constructor(private readonly auctionService: AuctionService) {}
+  constructor(
+    private readonly auctionCoreService: AuctionCoreService,
+    private readonly auctionBidService: AuctionBidService,
+    private readonly auctionQueryService: AuctionQueryService,
+  ) {}
 
   //KREIRANJE AUKCIJE
   @Post()
@@ -34,19 +40,19 @@ export class AuctionController {
     @Body() createAuctionDto: CreateAuctionDto,
     @CurrentUser() user: User,
   ): Promise<Auction> {
-    return this.auctionService.create(createAuctionDto, user)
+    return this.auctionCoreService.create(createAuctionDto, user)
   }
 
   // DOHVATI SVE AUKCIJE
   @Get()
   async findAll(): Promise<Auction[]> {
-    return this.auctionService.findAll();
+    return this.auctionCoreService.findAll();
   }
 
   // DOHVATI PO ID-ju
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<Auction | null> {
-    return this.auctionService.findOne(id);
+    return this.auctionCoreService.findOne(id);
   }
 
   // AŽURIRAJ AUKCIJU-role
@@ -62,7 +68,7 @@ export class AuctionController {
    @Body() updateAuctionDto: UpdateAuctionDto,
    @CurrentUser() currentUser:User
   ): Promise<Auction> {
-    return this.auctionService.update(id, updateAuctionDto, currentUser);
+    return this.auctionCoreService.update(id, updateAuctionDto, currentUser);
   }
 
   // AŽURIRANJE SAMO SVOJIH AUKCIJA (me/auction/:id)-role
@@ -79,7 +85,7 @@ export class AuctionController {
     @CurrentUser() currentUser: User
   ): Promise<Auction> {
 
-    return this.auctionService.updateOwnAuction(id, updateAuctionDto, currentUser);
+    return this.auctionCoreService.updateOwnAuction(id, updateAuctionDto, currentUser);
   }
 
 
@@ -96,7 +102,7 @@ export class AuctionController {
     @Body() bidData: CreateBidDto,
     @CurrentUser() currentUser: User,
   ): Promise<Auction> {
-    return this.auctionService.bidOnAuction(auctionId, bidData, currentUser);
+    return this.auctionBidService.bidOnAuction(auctionId, bidData, currentUser);
   }
 
   //PRODAVAC VIDI ISTORIJU PONUDA NA SVOJOJ AUKCIJI
@@ -110,7 +116,7 @@ export class AuctionController {
     @Param('id') id: number,
     @CurrentUser() currentUser: User,
   ): Promise<Bid []> {
-    return this.auctionService.getBidsForOwnAuction(id,currentUser);
+    return this.auctionCoreService.getBidsForOwnAuction(id,currentUser);
   }
 
   // BRISANJE AUKCIJE-role
@@ -127,7 +133,7 @@ export class AuctionController {
     @Param('id') id: number,
   @CurrentUser() currentUser: User
 ): Promise<void> {
-    await this.auctionService.remove(id, currentUser);
+    await this.auctionCoreService.remove(id, currentUser);
   }
 
   //FILTRIRANJE AUKCIJE, PAGINATION AUCTION, SEARCH AUCTION
@@ -135,7 +141,7 @@ export class AuctionController {
 async getAuctions(
   @Query() auctionQueryDto: AuctionQueryDto
 ) {
-  return this.auctionService.getAuctions(auctionQueryDto);
+  return this.auctionQueryService.getAuctions(auctionQueryDto);
 }
 
 //AUTOMATSKO BIDOVANJE-rucno
@@ -146,7 +152,7 @@ async automaticBid(
   @Body() createBidDto: CreateBidDto,
   
 ): Promise<Auction> {
-  return this.auctionService.automaticBid(auctionId, currentUser, createBidDto)
+  return this.auctionBidService.automaticBid(auctionId, currentUser, createBidDto)
 }
 
 //AUTOMATSKO BID-OVANJE-automatsko
@@ -156,13 +162,13 @@ async autoBid (
   @CurrentUser() currentUser: User,
   @Param('auctionId') auctionId: number,
 ): Promise<Bid | null> {
-  return this.auctionService.autoBid(auctionId, autoBidDto, currentUser)
+  return this.auctionBidService.autoBid(auctionId, autoBidDto, currentUser)
 }
 
 //AUTOMATSKO ZATVARANJE AUKCIJE
  @Post('close-expired')
  async closeExpiredAuction() {
-  return this.auctionService.closeExpiredAuction()
+  return this.auctionCoreService.closeExpiredAuction()
  }
 
 
