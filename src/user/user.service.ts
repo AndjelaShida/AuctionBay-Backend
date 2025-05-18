@@ -36,12 +36,17 @@ export class UserService {
   }
   //DOHVATI SVE KORISNIKE
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      relations: ['role', 'bids', 'auction', 'items', 'image']
+    });
   }
 
   //DOHVATI PO ID-ju
   async findOne(id: number): Promise<User | null> {
-    const user = await this.userRepository.findOneBy({ id });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['role', 'bids', 'auction', 'items', 'image']
+    })
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -83,7 +88,9 @@ export class UserService {
 
   //DOHVATANJE TRENUTKOG KORISNIKA
   async getMe(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+       where: { id },
+      relations: [ 'role', 'bids', 'auction', 'items', 'image'] });
     if (!user) {
       throw new NotFoundException('User is not found');
     }
