@@ -9,6 +9,12 @@ export class Bid extends BaseEntity {
   @Column('decimal')
   amount: number; //Iznos ponude
 
+  @Column()
+  userId: number;
+
+  @Column()
+  auctionId: number;
+
   @ManyToOne(() => User, (user) => user.bids)
   user: User;
 
