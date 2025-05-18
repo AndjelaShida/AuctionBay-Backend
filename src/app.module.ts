@@ -26,7 +26,14 @@ import { APP_GUARD } from "@nestjs/core";
             isGlobal: true // Čini konfiguraciju globalnom za celu aplikaciju
         }),
         ScheduleModule.forRoot(),//za Cron, za automatsko zatvaranje aukcija
-        ThrottlerModule.forRoot(),
+        ThrottlerModule.forRoot({
+             throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        }
+    ], 
+}),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService], // Injectuj ConfigService
