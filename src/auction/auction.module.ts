@@ -5,10 +5,12 @@ import { Bid } from "entities/bid.entity";
 import { Item } from "entities/item.entity";
 import { User } from "entities/user.entity";
 import { AuctionController } from "./auction.controller";
-import { AuctionService } from "./auction.service";
 import { Role } from "entities/role.entity";
 import { AutoBidEntity } from "bid/autoBid/autoBid.entity";
 import { EmailModule } from "email/email.module";
+import { AuctionCoreService } from "./auction-core.service";
+import { AuctionBidService } from "./auction-bid.service";
+import { AuctionQueryService } from "./auction-query.service";
 
 
 @Module({
@@ -16,8 +18,8 @@ import { EmailModule } from "email/email.module";
     EmailModule
 ],
     controllers: [AuctionController],
-    providers:[AuctionService],
-    exports: [AuctionService]
+    providers:[AuctionCoreService, AuctionBidService, AuctionQueryService],
+    exports: [AuctionCoreService, AuctionBidService, AuctionQueryService]
 })
 
 export class AuctionModule {}

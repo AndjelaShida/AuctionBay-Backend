@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { GlobalErrorHandler } from 'common/global-error-handler';
-import { ThrottlerGuard } from '@nestjs/throttler';
+
 
 async function bootstrap() {
   try {
