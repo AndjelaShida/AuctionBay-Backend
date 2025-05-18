@@ -1,46 +1,42 @@
 //Servis koji omogućava pristup vrednostima konfiguracije.
 
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
- 
- // Ova funkcija omogućava pristup vrednostima iz .env fajla, uz primenu validacije pomoću Joi šeme
-@Injectable()  // Ovaj dekorator označava da je klasa servis, što znači da može biti ubačena (injected) u druge komponente
+// Ova funkcija omogućava pristup vrednostima iz .env fajla, uz primenu validacije pomoću Joi šeme
+@Injectable() // Ovaj dekorator označava da je klasa servis, što znači da može biti ubačena (injected) u druge komponente
 export class ConfigServiceCustom {
-    constructor(private configService: ConfigService) {} // Injectovanje ConfigService u naš servis, kako bi se koristio za pristup konfiguraciji
- get(key:string):string  {
+  constructor(private configService: ConfigService) {} // Injectovanje ConfigService u naš servis, kako bi se koristio za pristup konfiguraciji
+  get(key: string): string {
     const value = this.configService.get<string>(key);
-    if(!value) { //ako vrednost ne postoji
-        throw new Error(`Configuration key ${key} not found`);
+    if (!value) {
+      //ako vrednost ne postoji
+      throw new Error(`Configuration key ${key} not found`);
     }
-    return value ;
- }
+    return value;
+  }
 
-   // Metoda za proveru i dobijanje vrednosti baze podataka (DB)
-   getDbHost():string {
-    return this.get('DB_HOST') ; //this.get() se često koristi za dobijanje vrednosti iz konfiguracije
-   }
+  // Metoda za proveru i dobijanje vrednosti baze podataka (DB)
+  getDbHost(): string {
+    return this.get('DB_HOST'); //this.get() se često koristi za dobijanje vrednosti iz konfiguracije
+  }
 
-   getDbPort():number {
-    return Number(this.get('DB_PORT')) ; //Number(this.get-se koristi jer je PORT number, u slucaju greske izbacice NaN, cime cemo mozda lakse naci gresku u kodu
-   }
+  getDbPort(): number {
+    return Number(this.get('DB_PORT')); //Number(this.get-se koristi jer je PORT number, u slucaju greske izbacice NaN, cime cemo mozda lakse naci gresku u kodu
+  }
 
-   getDbName():string {
+  getDbName(): string {
     return this.get('DB_NAME');
-   }
+  }
 
-   getDbUser():string {
+  getDbUser(): string {
     return this.get('DB_USERNAME');
-   }
+  }
 
-   getDbPassword():string{
+  getDbPassword(): string {
     return String(this.get('DB_PASSWORD'));
-   }
-
-   
+  }
 }
-
-
 
 //U NestJS, kao i u mnogim JavaScript/TypeScript projektima, this.get() se često koristi za dobijanje vrednosti iz konfiguracije, okruženja (environment) ili nekog drugog izvora podataka. Razlika u korišćenju Number() i ne korišćenju bilo kakve konverzije zavisi od tipa podatka koji se očekuje i vrste vrednosti koju vraća this.get().
 //this.get('DB_PORT') vraća vrednost koja je najverovatnije string (jer podaci koji se učitavaju iz okruženja, kao što je .env fajl, obično dolaze kao stringovi).

@@ -88,6 +88,19 @@ export class AuctionController {
     return this.auctionCoreService.updateOwnAuction(id, updateAuctionDto, currentUser);
   }
 
+  //DOHVATANJE SVIH BIDOVA PO AUKCIJI
+  @Get(':id/bids')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get bids for auction'})
+  @ApiResponse({ status: 200, description:'Successfully get all bids'})
+  @ApiResponse({ status: 401, description: 'Unauthorized'})
+  async getBidsForAuction(
+    @Param('id')
+    auctionId: number
+  ): Promise<Bid[]> {
+    return this.auctionBidService.getBidsForAuction(auctionId)
+  }
+
 
   // BIDDING NA AUKCIJU (/auction/:id/bid)-role
   @Post(':id/bid')
