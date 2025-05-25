@@ -59,3 +59,5 @@ $ npm run test:e2e
 $ npm run test:cov
 
 #Initial commit after rebasing.
+
+#Docker - Docker support has been added as a bonus functionality- the application can be built and run in a Docker container.

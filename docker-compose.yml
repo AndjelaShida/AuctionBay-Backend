@@ -1,0 +1,29 @@
+//omogucava da pokrenemo vise Docker kontejnera odjednom, uz jednostavnu komandu
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: auctionbay-backend
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    container_name: auctionbay-db
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Gandijeva85
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
