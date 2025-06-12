@@ -7,7 +7,7 @@ import { Bid } from 'entities/bid.entity';
 import { Item } from 'entities/item.entity';
 import { Image } from './image.entity';
 import { Role } from './role.entity';
-import { Notification } from 'notification/notification.entitiy';
+import { Notification } from 'notification/notification.entity';
 
 @Entity() //Entity() se koristi za označavanje klase kao entiteta u TypeORM-u.
 export class User extends BaseEntity {

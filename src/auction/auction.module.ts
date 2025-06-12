@@ -11,10 +11,11 @@ import { EmailModule } from 'email/email.module';
 import { AuctionCoreService } from './auction-core.service';
 import { AuctionBidService } from './auction-bid.service';
 import { AuctionQueryService } from './auction-query.service';
+import { Notification } from 'notification/notification.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Auction, User, Item, Bid, Role, AutoBidEntity]),
+    TypeOrmModule.forFeature([Auction, User, Item, Bid, Role, AutoBidEntity, Notification]),
     EmailModule,
   ],
   controllers: [AuctionController],

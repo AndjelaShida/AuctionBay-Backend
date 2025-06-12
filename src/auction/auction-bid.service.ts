@@ -14,6 +14,7 @@ import { Bid } from 'entities/bid.entity';
 import { User } from 'entities/user.entity';
 import { NotificationService } from 'notification/notification.service';
 import { Repository } from 'typeorm';
+import { Notification } from 'notification/notification.entity';
 
 @Injectable()
 export class AuctionBidService {

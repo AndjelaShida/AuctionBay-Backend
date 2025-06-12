@@ -5,7 +5,6 @@ import { Bid } from 'entities/bid.entity';
 import { Item } from 'entities/item.entity';
 import { User } from 'entities/user.entity';
 import { Image } from 'entities/image.entity';
-
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Role } from 'entities/role.entity';
 import { UserModule } from 'user/user.module';
@@ -17,6 +16,8 @@ import { RoleModule } from 'role/role.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { NotificationModule } from 'notification/notification.module';
+import { Notification } from 'notification/notification.entity';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { APP_GUARD } from '@nestjs/core';
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          ttl: 60000,
+          ttl: 60,
           limit: 10,
         },
       ],
@@ -42,7 +43,7 @@ import { APP_GUARD } from '@nestjs/core';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [User, Auction, Bid, Item, Role, Image], // Definiše entitete
+        entities: [User, Auction, Bid, Item, Role, Image, Notification], // Definiše entitete
         synchronize: true, // Samo za razvoj! U produkciji postaviti na false
       }),
     }),
@@ -52,6 +53,7 @@ import { APP_GUARD } from '@nestjs/core';
     BidModule,
     ImageModule,
     RoleModule,
+    NotificationModule
   ],
   providers: [
     {
