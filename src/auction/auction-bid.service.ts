@@ -12,6 +12,7 @@ import { CreateBidDto } from 'bid/dto/create-bid.dto';
 import { Auction } from 'entities/auction.entity';
 import { Bid } from 'entities/bid.entity';
 import { User } from 'entities/user.entity';
+import { NotificationService } from 'notification/notification.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -25,6 +26,9 @@ export class AuctionBidService {
 
     @InjectRepository(AutoBidEntity)
     private readonly autoBidRepository: Repository<AutoBidEntity>,
+
+    @InjectRepository(Notification)
+    private readonly notificationService: NotificationService,
   ) {}
 
   //DOHVATANJE SVIH BIDOVA PO AUKCIJI
@@ -50,7 +54,7 @@ export class AuctionBidService {
     //trazenje 
     const auction = await this.auctionRepository.findOne({
       where: { id: auctionId },
-      relations: ['user', 'item'],
+      relations: ['user', 'items'],
     });
 
     //provera da li aukcije postoji
@@ -80,6 +84,12 @@ export class AuctionBidService {
     auction.currentPrice = createBidDto.amount;
     auction.bidder = currentUser;
     await this.auctionRepository.save(auction);
+
+    const itemName = auction.items?.[0].name || 'unknown item';
+    await this.notificationService.createNotification(
+       `You have successfully placed a bid of ${createBidDto.amount} $ for the auction "${itemName}"`,
+       currentUser,
+    )
 
     return auction;
   }

@@ -1,4 +1,4 @@
-//omogucava da pokrenemo vise Docker kontejnera odjednom, uz jednostavnu komandu
+#omogucava da pokrenemo vise Docker kontejnera odjednom, uz jednostavnu komandu
 version: '3.8'
 
 services:

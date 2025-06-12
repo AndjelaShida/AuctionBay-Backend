@@ -1,9 +1,9 @@
-//docker je alat koji mi omogucava da spakujem celu svoju aplikaciju (kod+biblioteke+okruzenje) u jedan kontejner, koji onda mogu
-da pokrenem bilo gde, bez razlike da li sam na Windowsu, Linduxu, serveru, cloudu...
+#docker je alat koji mi omogucava da spakujem celu svoju aplikaciju (kod+biblioteke+okruzenje) u jedan kontejner, koji onda mogu
+#da pokrenem bilo gde, bez razlike da li sam na Windowsu, Linduxu, serveru, cloudu...
 
 
 # 1. Koristi Node image(mala i brza verzija Node-a)
-FROM node:18-alpine
+FROM node:18-bullseye
 
 # 2. Radna putanja u kontejneru (kao cd)
 WORKDIR /src
@@ -24,4 +24,4 @@ RUN npm run build
 EXPOSE 5000
 
 # 8. Startuje aplikaciju iz build foldera
-CMS ["node", "dist/main"]
+CMD ["node", "dist/main"]

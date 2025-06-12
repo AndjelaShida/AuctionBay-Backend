@@ -7,6 +7,7 @@ import { Bid } from 'entities/bid.entity';
 import { Item } from 'entities/item.entity';
 import { Image } from './image.entity';
 import { Role } from './role.entity';
+import { Notification } from 'notification/notification.entitiy';
 
 @Entity() //Entity() se koristi za označavanje klase kao entiteta u TypeORM-u.
 export class User extends BaseEntity {
@@ -40,4 +41,7 @@ export class User extends BaseEntity {
   @ManyToOne(() => Role, { eager: true })
   @JoinColumn({ name: 'roleId' })
   role: Role;
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 }
