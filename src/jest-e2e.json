@@ -1,0 +1,16 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^entities/(.*)$": "<rootDir>/entities/$1",
+    "^notification/(.*)$": "<rootDir>/notification/$1"
+  },
+  "moduleDirectories": ["node_modules", "<rootDir>"]
+}
+
+

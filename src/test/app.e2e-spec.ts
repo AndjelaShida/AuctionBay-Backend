@@ -1,18 +1,26 @@
 import * as request from 'supertest'; //supertest je biblioteka za slanje http zahteva aplikaciji, koristi se za e2e testove
 import { Test } from '@nestjs/testing'; //koristi se za pravljenje test instatnce moje app
 import { INestApplication, ValidationPipe } from '@nestjs/common'; //tip za celu Nest aplikaciju/omogucava validaciju DTO-a kao u realnom radu
-import { AppModule } from 'app.module'; //glavni modul, da bi se aplikacija "digla" za testiranje
+import { AppModule } from '../app.module'; //glavni modul, da bi se aplikacija "digla" za testiranje
+import { AuthGuard } from '@nestjs/passport';
+import { MockAuthGuard } from './mocks/dummy-guard';
 
 
 describe('AuctionController (e2e)', () => {
   //grupise sve testove vezane za AuctionController
   let app: INestApplication; //promenljiva gde cuvamo instancu Nest aplikacije tokom testa
 
+
   beforeAll(async () => {
     //pre svih testova, moramo da podignemo aplikaciju u memoriji(kao kad pokrecemo server)
+
+    
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile(); //ovde pravimo test modul i ubacujemo AppModule, jer on povezuje sve kontrolore, servise i rute
+    })
+     .overrideGuard(AuthGuard('jwt'))       // OVDE override-ujemo pravi JWT guard
+  .useClass(MockAuthGuard)               // i koristimo dummy guard koji uvek vraća true
+  .compile();//.compile(); //ovde pravimo test modul i ubacujemo AppModule, jer on povezuje sve kontrolore, servise i rute
 
     app = moduleFixture.createNestApplication(); //inicijalizujemo app kao pravu Nest aplikaciju(ali lokalno, bez pokretanja http servera)
     app.useGlobalPipes(new ValidationPipe()); //ako koristimo validaciju DTO(npr @IsString itd), moras ukljuciti i ovde, inace test nece odbiti pogresan unos
@@ -50,7 +58,7 @@ describe('AuctionController (e2e)', () => {
           .expect(201); //saljemo POST zahtev sa Authorization, headerom i telom i ocekujemo status 201 Created
 
         expect(res.body).toHaveProperty('id');
-        expect(res.body.tiitle).toBe(mockAuction.title); // Proveravamo da odgovor sadrži id i da title odgovara onome što smo poslali.
+        expect(res.body.title).toBe(mockAuction.title); // Proveravamo da odgovor sadrži id i da title odgovara onome što smo poslali.
 
       });
     });

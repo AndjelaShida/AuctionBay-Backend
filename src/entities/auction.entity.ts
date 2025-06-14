@@ -11,7 +11,7 @@ import { User } from './user.entity';
 import { Bid } from './bid.entity';
 import { Item } from './item.entity';
 import { Image } from './image.entity';
-import { timestamp } from 'rxjs';
+
 
 @Entity()
 export class Auction extends BaseEntity {
