@@ -24,8 +24,6 @@ export class CreateAuctionDto {
  @IsOptional()
  @IsNumber()
  durationMinutes?: number ;
-
-
 }
 
 // @IsString() //ozncava da je string
