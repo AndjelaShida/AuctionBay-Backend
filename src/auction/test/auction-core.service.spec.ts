@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuctionCoreService } from './auction-core.service';
+import { AuctionCoreService } from '../auction-core.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Auction } from 'entities/auction.entity';
+import { Auction } from '../../entities/auction.entity';
 import { User } from 'entities/user.entity';
 import { BadRequestException } from '@nestjs/common';
 
@@ -11,6 +11,7 @@ describe('AuctionCoreService', () => {
     create: jest.Mock;
     save: jest.Mock;
   };
+
 
   beforeEach(async () => {//pravimo lazni auctionRepository-simuliramo dva metoda koje koristi servis
     auctionRepository = {

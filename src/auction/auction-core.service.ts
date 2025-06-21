@@ -8,7 +8,7 @@ import { CreateAuctionDto } from './dto/create-auction.dto';
 import { User } from 'entities/user.entity';
 import { Auction } from 'entities/auction.entity';
 import { UpdateAuctionDto } from './dto/update-auction.dto';
-import { RoleEnum } from 'role/role.enum';
+import { RoleEnum } from '../role/role.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
 import { Bid } from 'entities/bid.entity';
